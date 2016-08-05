@@ -1,0 +1,27 @@
+{
+  "name": "throwcast-api-server",
+  "version": "1.0.0",
+  "description": "podcast app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .; exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeamDODA/throwcast-api-server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TeamDODA/throwcast-api-server/issues"
+  },
+  "homepage": "https://github.com/TeamDODA/throwcast-api-server#readme",
+  "devDependencies": {
+    "eslint": "^3.2.2",
+    "eslint-config-airbnb": "^10.0.0",
+    "eslint-plugin-import": "^1.12.0",
+    "eslint-plugin-jsx-a11y": "^2.0.1",
+    "eslint-plugin-react": "^6.0.0"
+  }
+}
