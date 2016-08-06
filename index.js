@@ -1,5 +1,6 @@
 const db = require('./db');
 const server = require('./server');
+const logger = require('winston');
 
-db.on('error', console.error.bind(console, 'connection error:')); // eslint-disable-line no-console
+db.on('error', logger.error.bind(logger, 'Mongoose:'));
 db.once('open', server.start);
