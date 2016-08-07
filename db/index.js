@@ -2,8 +2,9 @@ const mongoose = require('mongoose');
 const config = require('../config/environment');
 const Promise = require('bluebird');
 
-Promise.promisifyAll(mongoose);
+mongoose.Promise = Promise;
 
-mongoose.connect(config.mongo.uri);
-
-module.exports = mongoose.connection;
+module.exports = {
+  connect: () => mongoose.connect(config.mongo.uri),
+  connection: mongoose.connection,
+};

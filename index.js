@@ -1,6 +1,23 @@
 const db = require('./db');
-const server = require('./server');
+const { app, listen } = require('./server');
 const logger = require('winston');
 
-db.on('error', logger.error.bind(logger, 'Mongoose:'));
-db.once('open', server.start);
+db.connect()
+  .then(() => logger.info('Mongoose connection established...'))
+  .then(listen)
+  .then(() => logger.info(`Listening on port ${app.get('port')} in ${app.get('env')} mode...`))
+  .catch(logger.error);
+
+// http://theholmesoffice.com/mongoose-connection-best-practice/
+const shutdown = function shutdown(msg, cb) {
+  return function gracefulShutdown() {
+    db.connection.close(() => {
+      logger.info(`Mongoose disconnected through ${msg}`);
+      cb();
+    });
+  };
+};
+
+process.once('SIGUSR2', shutdown('Nodemon Restart', () => process.kill(process.pid, 'SIGUSR2')));
+process.on('SIGINT', shutdown('App Termination', () => process.exit(0)));
+process.on('SIGTERM', shutdown('Heroku App Termination', () => process.exit(0)));
