@@ -20,13 +20,11 @@ module.exports = {
     const { username, password } = req.body;
     User.findOne({ username }).exec()
       .then(function (foundUser) {
-        if (foundUser) {
-          res.send('username exists');
-        } else {
+        if (!foundUser) {
           return User.create({ username, password });
         }
       })
-      .then(valid => res.send(signToken(valid.username)))
+      .then(valid => valid ? res.send(signToken(valid.username)) : res.send('username exists'))
       .catch(err => logger.info(err));
   },
 };
