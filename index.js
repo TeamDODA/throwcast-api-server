@@ -1,10 +1,10 @@
 const db = require('./db');
-const { app, listen } = require('./server');
+const app = require('./server');
 const logger = require('winston');
 
 db.connect()
   .then(() => logger.info('Mongoose connection established...'))
-  .then(listen)
+  .then(() => app.listen(app.get('port'), app.get('ip')))
   .then(() => logger.info(`Listening on port ${app.get('port')} in ${app.get('env')} mode...`))
   .catch(logger.error);
 
