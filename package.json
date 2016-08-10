@@ -9,8 +9,8 @@
     "test:unit": "NODE_ENV=test mocha -r ./mocha.conf.js -R spec **/*.spec.js",
     "test:integration": "NODE_ENV=test mocha -r ./mocha.conf.js -R spec **/*.integration.js",
     "lint": "npm run lint:tests && npm run lint:scripts",
-    "lint:tests": "eslint -c .eslintrc.spec ./**/*.{spec,integration}.js; exit 0",
-    "lint:scripts": "eslint ./**/*!.{spec,integration}.js; exit 0",
+    "lint:tests": "eslint --ignore-path .eslintignore.test -c .eslintrc.test --ext .js .; exit 0",
+    "lint:scripts": "eslint . --ext .js; exit 0",
     "dev": "nodemon index.js"
   },
   "repository": {
