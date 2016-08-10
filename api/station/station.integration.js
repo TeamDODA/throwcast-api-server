@@ -1,10 +1,22 @@
 const request = require('supertest-as-promised');
+
+const { cleanModels } = require('../../utils/testing');
 const Station = require('./station.model');
 const db = require('../../db');
 
+const stations = [{
+  title: 'station1',
+  link: 'http://station1.com',
+  description: 'fake station1',
+}, {
+  title: 'station2',
+  link: 'http://station2.com',
+  description: 'fake station2',
+}];
+
 describe('Station API', () => {
-  before(db.connect);
-  after(() => db.connection.close());
+  before(() => db.connect().then(cleanModels));
+  after(() => cleanModels().then(() => db.connection.close()));
 
   let server;
   beforeEach(() => {
@@ -14,17 +26,7 @@ describe('Station API', () => {
   afterEach(done => server.close(done));
 
   describe('GET /', () => {
-    const stationRecords = [{
-      title: 'station 1',
-      link: 'http://station.one.com',
-      description: 'The first station.',
-    }, {
-      title: 'station 2',
-      link: 'http://station.two.com',
-      description: 'The second station.',
-    }];
-
-    beforeEach(() => Station.create(stationRecords));
+    beforeEach(() => Station.create(stations));
 
     it('should return an array of all stations', () => request(server)
       .get('/api/stations')

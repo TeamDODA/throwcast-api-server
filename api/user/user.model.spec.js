@@ -1,13 +1,12 @@
-const db = require('../../db');
+const { cleanModels } = require('../../utils/testing');
 const User = require('./user.model');
+const db = require('../../db');
 
 describe('User Model', () => {
-  const cleanModels = () => User.remove();
-
   before(() => db.connect().then(cleanModels));
   after(() => db.connection.close());
 
-  afterEach(cleanModels);
+  afterEach(() => cleanModels());
 
   it('should start with no users', () => User.find().should.eventually.have.length(0));
 });

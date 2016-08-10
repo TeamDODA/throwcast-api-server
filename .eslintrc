@@ -1,6 +1,7 @@
 {
   "extends": "airbnb",
   "rules": {
-    "new-cap": ["error", { "capIsNewExceptions": ["Router"] }]
+    "new-cap": ["error", { "capIsNewExceptions": ["Router"] }],
+    "no-underscore-dangle": [2, { "allow": ["_id"] }]
   }
 }
