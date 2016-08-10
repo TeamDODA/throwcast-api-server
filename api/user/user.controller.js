@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
-const logger = require('winston');
 
+const { handleError } = require('../../utils');
 const config = require('../../config/environment');
 const User = require('./user.model');
 
@@ -44,7 +44,7 @@ controller.login = (req, res) => {
   User.findOne({ username }).exec()
     .then(checkPassword(password))
     .then(sendTokenOrError(username, 'invalid login', res))
-    .catch(err => logger.info(err));
+    .catch(handleError(res));
 };
 
 /**
@@ -55,7 +55,7 @@ controller.signUp = (req, res) => {
   User.findOne({ username }).exec()
     .then(createUserIfNotFound(username, password))
     .then(sendTokenOrError(username, 'username exists', res))
-    .catch(err => logger.info(err));
+    .catch(handleError(res));
 };
 
 module.exports = controller;
