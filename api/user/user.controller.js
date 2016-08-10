@@ -13,7 +13,7 @@ module.exports = {
     const { username, password } = req.body;
     User.findOne({ username }).exec()
       .then(user => user ? User.comparePassword(password, user.password) : false)
-      .then(valid => valid ? res.send(signToken(username)) : res.send('invalid login'))
+      .then(valid => valid ? res.send({token: signToken(username)}) : res.send({statusMessage: 'invalid login'}))
       .catch(err => logger.info(err));
   },
   signUp: (req, res) => {
@@ -24,7 +24,7 @@ module.exports = {
           return User.create({ username, password });
         }
       })
-      .then(valid => valid ? res.send(signToken(valid.username)) : res.send('username exists'))
+      .then(valid => valid ? res.send({token: signToken(valid.username)}) : res.send({statusMessage: 'username exists'}))
       .catch(err => logger.info(err));
   },
 };
