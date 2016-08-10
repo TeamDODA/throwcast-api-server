@@ -54,5 +54,8 @@
     "mongoose": "^4.5.8",
     "morgan": "^1.7.0",
     "winston": "^2.2.0"
+  },
+  "engines": {
+    "node": "6.3.1"
   }
 }
