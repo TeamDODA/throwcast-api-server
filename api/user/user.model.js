@@ -13,7 +13,7 @@ const compare = Promise.promisify(bcrypt.compare);
 
 User.comparePassword = (candidatePw, savedPw) => compare(candidatePw, savedPw);
 
-userSchema.pre('save', function (next) {
+userSchema.pre('save', function preSave(next) {
   cipher(this.password, null, null).bind(this)
     .then(hash => {
       this.password = hash;
