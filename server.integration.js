@@ -2,14 +2,14 @@ const request = require('supertest-as-promised');
 const db = require('./db');
 
 describe('Server', () => {
-  let server;
   before(db.connect);
+  after(() => db.connection.close());
 
+  let server;
   beforeEach(() => {
     const app = require('./server', { bustCache: true });
     server = app.listen(app.get('port'), app.get('ip'));
   });
-
   afterEach(done => server.close(done));
 
   describe('sanity check', () => {
