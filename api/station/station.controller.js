@@ -3,10 +3,10 @@ const logger = require('winston');
 
 const controller = {};
 const handleError = (res, statusCode) => {
-  statusCode = statusCode || 500;
+  const code = statusCode || 500;
   return err => {
     logger.error(err);
-    res.status(statusCode).send(err);
+    res.status(code).send(err);
   };
 };
 
