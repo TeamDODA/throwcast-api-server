@@ -2,8 +2,6 @@ const jwt = require('jsonwebtoken');
 
 const config = require('../config/environment');
 
-const SECRET = config.secrets.session;
-
-module.exports.signToken = function signToken(username) {
-  return jwt.sign({ user: username }, SECRET, { expiresIn: 3600 });
+module.exports.signToken = function signToken(id) {
+  return jwt.sign({ _id: id }, config.secrets.session, { expiresIn: 3600 });
 };
