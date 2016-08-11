@@ -1,18 +1,17 @@
-const db = require('../../db');
+const { cleanModels } = require('../../utils/testing');
 const Station = require('./station.model');
+const db = require('../../db');
+
+const title = 'fake station';
+const link = 'https://fake.station.com';
+const description = 'Some description goes here.';
+const imageUrl = 'https://some.where.com/image.png';
 
 describe('Station Model', () => {
-  const title = 'fake station';
-  const link = 'https://fake.station.com';
-  const description = 'Some description goes here.';
-  const imageUrl = 'https://some.where.com/image.png';
-
-  const cleanModels = () => Station.remove();
-
   before(() => db.connect().then(cleanModels));
   after(() => db.connection.close());
 
-  afterEach(cleanModels);
+  afterEach(() => cleanModels());
 
   it('should start with no stations', () => Station.find().should.eventually.have.length(0));
 
