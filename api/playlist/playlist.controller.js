@@ -3,45 +3,56 @@ const Playlist = require('./playlist.model');
 
 const controller = {};
 
-controller.getAll = (req, res) => {
+controller.lists = (req, res) => {
   Playlist.find({}).exec()
     .then(playlists => res.send(playlists))
     .catch(handleError(res));
 };
 
-controller.getOne = (req, res) => {
-  Playlist.findOne({req.body.id}).exec()
-  	.then(playlists => res.send(playlists))
-  	.catch(handleError(res));
-};
-controller.createList = (req, res) => {
-	const { name, owner } = req.body
-	Playlist.create({name, owner})
-		.then(playlist => controller.getAll(req, res))
-		.catch(handleError(res));
+controller.show = (req, res) => {
+  const id = req.params.playlistId;
+  Playlist.findById(id).exec()
+    .then(playlist => res.send(playlist))
+    .catch(handleError(res));
 };
 
-controller.deleteList = (req, res) => {
-	Playlist.remove({}).exec()
-		.then(response => res.send(response))
-		.catch(handleError(res));
+controller.create = (req, res) => {
+  const { name, owner } = req.body;
+  Playlist.create({ name, owner })
+    .then(playlist => res.send(playlist))
+    .catch(handleError(res));
 };
 
-controller.addToList = (req, res) => {
-	const { id, p_id } = req.body
-	Playlist.findOne({id}).exec()
-		.then(list => Playlist.podcasts.push(p_id))
-		.then(response => res.send(response))
-		.catch(handleError(res));
+controller.delete = (req, res) => {
+  Playlist.remove({ _id: req.params.playlistId })
+    .then(response => res.send(response))
+    .catch(handleError(res));
 };
 
-controller.removeFromList = (req, res) => {
-	const { id, p_id } = req.body
-	Playlist.findOne({id}).exec()
-		.then(list => console.log("need to delete playlist", list))
-		.then(response => res.send(response))
-		.catch(handleError(res));
+controller.addPodcast = (req, res) => {
+  const { playlistId, podcastId } = req.params;
+  Playlist.findById(playlistId).exec()
+    .then(list => {
+      list.podcasts.push(podcastId);
+      return list.save();
+    })
+    .then(result => res.send(result))
+    .catch(handleError(res));
 };
 
+controller.removePodcast = (req, res) => {
+  const { playlistId, podcastId } = req.params;
+  Playlist.update(
+    { _id: playlistId },
+    { $pull: { podcasts: podcastId } }
+    ).exec()
+    .then(response => {
+      if (response.nModified > 0) {
+        return res.sendStatus(202);
+      }
+      return res.send('podcast not found');
+    })
+    .catch(handleError(res));
+};
 
 module.exports = controller;
