@@ -38,7 +38,7 @@ controller.addToList = (req, res) => {
 controller.removeFromList = (req, res) => {
 	const { id, p_id } = req.body
 	Playlist.findOne({id}).exec()
-		.then(list => console.log("need to delete list", list))
+		.then(list => console.log("need to delete playlist", list))
 		.then(response => res.send(response))
 		.catch(handleError(res));
 };
