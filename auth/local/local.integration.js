@@ -7,12 +7,15 @@ const db = require('../../db');
 const userCredentials = [{
   username: 'username1',
   password: 'password1',
+  provider: 'local',
 }, {
   username: 'username2',
   password: 'password2',
+  provider: 'local',
 }, {
   username: 'username3',
   password: 'password3',
+  provider: 'local',
 }];
 
 describe('Local auth', () => {
@@ -27,75 +30,59 @@ describe('Local auth', () => {
   });
   afterEach(() => cleanModels().then(() => server.close()));
 
-  describe('POST /auth/local/sign-in', () => {
+  describe('POST /auth/local', () => {
     it('should send status 200 response with signed token', () => request(server)
-      .post('/auth/local/sign-in')
+      .post('/auth/local')
       .send(userCredentials[0])
       .expect(200)
       .expect('Content-Type', /json/)
       .then(res => res.body.should.have.property('token')));
 
     it('should send status 200 response with signed token', () => request(server)
-      .post('/auth/local/sign-in')
+      .post('/auth/local')
       .send(userCredentials[1])
       .expect(200)
       .expect('Content-Type', /json/)
       .then(res => res.body.should.have.property('token')));
 
-    it('should send "invalid login" statusMessage when no user with username', () => request(server)
-      .post('/auth/local/sign-in')
-      .send({ username: 'nonExistentUsername' })
-      .expect(200)
+    it('should send "Missing credential" message when no password', () => request(server)
+      .post('/auth/local')
+      .send({ username: 'username1' })
+      .expect(401)
       .then(res => {
         res.body.should.not.have.property('token');
-        res.body.should.have.property('statusMessage');
-        res.body.statusMessage.should.equal('invalid login');
+        res.body.should.have.property('message');
+        res.body.message.should.equal('Missing credentials');
       }));
 
-    it('should send "invalid login" statusMessage when password mismatches', () => request(server)
-      .post('/auth/local/sign-in')
+    it('should send "Missing credential" message when no username', () => request(server)
+      .post('/auth/local')
+      .send({ password: 'password1' })
+      .expect(401)
+      .then(res => {
+        res.body.should.not.have.property('token');
+        res.body.should.have.property('message');
+        res.body.message.should.equal('Missing credentials');
+      }));
+
+    it('should send "Invalid username" message when no user with username', () => request(server)
+      .post('/auth/local')
+      .send({ username: 'nonExistentUsername', password: 'password' })
+      .expect(401)
+      .then(res => {
+        res.body.should.not.have.property('token');
+        res.body.should.have.property('message');
+        res.body.message.should.equal('Invalid username');
+      }));
+
+    it('should send "Invalid password" message when password mismatches', () => request(server)
+      .post('/auth/local')
       .send({ username: userCredentials[0].username, password: 'password' })
-      .expect(200)
+      .expect(401)
       .then(res => {
         res.body.should.not.have.property('token');
-        res.body.should.have.property('statusMessage');
-        res.body.statusMessage.should.equal('invalid login');
-      }));
-  });
-
-  describe('POST /auth/local/sign-up', () => {
-    it('should create a new user with username and password', () => request(server)
-      .post('/auth/local/sign-up')
-      .send(userCredentials[2])
-      .expect(200)
-      .then(() => User.find({ username: userCredentials[2].username }))
-      .then(foundUser => foundUser.should.exist));
-
-    it('should send status 200 response with signed token', () => request(server)
-      .post('/auth/local/sign-up')
-      .send(userCredentials[2])
-      .expect(200)
-      .then(res => res.body.should.have.property('token')));
-
-    it('should be able to sign in with created user', () => request(server)
-      .post('/auth/local/sign-up')
-      .send(userCredentials[2])
-      .expect(200)
-      .then(() => request(server)
-        .post('/auth/local/sign-in')
-        .send(userCredentials[2])
-        .expect(200)
-        .expect('Content-Type', /json/)
-        .then(res => res.body.should.have.property('token'))));
-
-    it('should send "username exists" statusMessage when username exists', () => request(server)
-      .post('/auth/local/sign-up')
-      .send(userCredentials[0])
-      .expect(200)
-      .then(res => {
-        res.body.should.not.have.property('token');
-        res.body.should.have.property('statusMessage');
-        res.body.statusMessage.should.equal('username exists');
+        res.body.should.have.property('message');
+        res.body.message.should.equal('Invalid password');
       }));
   });
 });
