@@ -1,56 +1,42 @@
-const { handleError } = require('../../utils');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+
 const { signToken } = require('../auth.service');
 const User = require('../../api/user/user.model');
 
+passport.use(new LocalStrategy({
+  usernameField: 'username',
+  passwordField: 'password',
+}, (username, password, done) => {
+  User.findOne({ username }).exec()
+    .then(user => {
+      if (!user) {
+        return done(null, false, { message: 'Invalid username' });
+      }
+      return User.comparePassword(password, user.password)
+        .then(authenticated => {
+          if (!authenticated) {
+            return done(null, false, { message: 'Invalid password' });
+          }
+          return done(null, user);
+        });
+    })
+    .catch(err => done(err));
+}));
+
 const controller = {};
 
-const checkPassword = function checkPassword(password) {
-  return storedUser => {
-    if (storedUser) {
-      return User.comparePassword(password, storedUser.password);
+controller.auth = function auth(req, res, next) {
+  passport.authenticate('local', (err, user, info) => {
+    const error = err || info;
+    if (error) {
+      return res.status(401).json(error);
     }
-    return false;
-  };
-};
-
-const createUserIfNotFound = function createUserIfNotFound(username, password) {
-  return storedUser => {
-    if (!storedUser) {
-      return User.create({ username, password });
+    if (!user) {
+      return res.status(404).json({ message: 'Something went wrong, please try again.' });
     }
-    return null;
-  };
-};
-
-const sendTokenOrError = function sendTokenOrError(username, statusMessage, res) {
-  return matches => {
-    if (matches) {
-      return res.send({ token: signToken(username) });
-    }
-    return res.send({ statusMessage });
-  };
-};
-
-/**
- * Compares stored and submitted password and sends signed token if hashes match
- */
-controller.signIn = (req, res) => {
-  const { username, password } = req.body;
-  User.findOne({ username }).exec()
-    .then(checkPassword(password))
-    .then(sendTokenOrError(username, 'invalid login', res))
-    .catch(handleError(res));
-};
-
-/**
- * Tries to sign up the user with submitted username and password and signs them in
- */
-controller.signUp = (req, res) => {
-  const { username, password } = req.body;
-  User.findOne({ username }).exec()
-    .then(createUserIfNotFound(username, password))
-    .then(sendTokenOrError(username, 'username exists', res))
-    .catch(handleError(res));
+    return res.json({ token: signToken(user._id) });
+  })(req, res, next);
 };
 
 module.exports = controller;
