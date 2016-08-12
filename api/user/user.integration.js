@@ -83,9 +83,9 @@ describe('User API', () => {
 
     describe('with username that is already in use', () => {
       beforeEach(() => request(server)
-          .post('/api/users')
-          .send(userCredentials[0])
-          .expect(200));
+        .post('/api/users')
+        .send(userCredentials[0])
+        .expect(200));
 
       it('should send 422 status code', () => request(server)
         .post('/api/users')
@@ -100,6 +100,49 @@ describe('User API', () => {
           res.body.should.have.property('message');
           res.body.message.should.equal('Username already in use');
         }));
+    });
+  });
+
+  describe('GET /api/users/me', () => {
+    let user;
+    const { username, password } = userCredentials[0];
+    beforeEach(() => User.create({ provider: 'local', username, password })
+      .then(createdUser => (user = createdUser)));
+
+    describe('when valid authorization token is sent', () => {
+      let token;
+      beforeEach(() => request(server)
+        .post('/auth/local')
+        .send(userCredentials[0])
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .then(res => {
+          res.body.should.have.property('token');
+          token = res.body.token;
+        }));
+
+      it('should send 200 status code and user info', () => request(server)
+        .get('/api/users/me')
+        .set('authorization', `Bearer ${token}`)
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .then(res => {
+          res.body._id.toString().should.equal(user._id.toString());
+          res.body.username.should.equal(user.username);
+        }));
+    });
+
+    describe('when authorization token is missing', () => {
+      it('should send 401 status code', () => request(server)
+        .get('/api/users/me')
+        .expect(401));
+    });
+
+    describe('when authorization token is invalid', () => {
+      it('should send 401 status code', () => request(server)
+        .get('/api/users/me')
+        .set('authorization', 'Bearer some-invalid-token')
+        .expect(401));
     });
   });
 });

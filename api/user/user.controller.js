@@ -12,6 +12,11 @@ controller.create = function create(req, res) {
     .catch(validationError(res, 422));
 };
 
+controller.me = function me(req, res) {
+  const { _id, username } = req.user;
+  res.json({ _id, username });
+};
+
 controller.addStation = (req, res) => {
   User.findById(req.params.userId).exec()
     .then(user => {
@@ -27,7 +32,7 @@ controller.deleteStation = (req, res) => {
   User.update(
     { _id: userId },
     { $pull: { subscriptions: stationId } }
-    ).exec()
+  ).exec()
     .then(response => {
       if (response.nModified > 0) {
         return res.sendStatus(202);
@@ -52,7 +57,7 @@ controller.deleteQueue = (req, res) => {
   User.update(
     { _id: userId },
     { $pull: { queue: podcastId } }
-    ).exec()
+  ).exec()
     .then(response => {
       if (response.nModified > 0) {
         return res.sendStatus(202);
