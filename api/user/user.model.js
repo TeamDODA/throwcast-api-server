@@ -3,11 +3,14 @@ const bcrypt = require('bcrypt-nodejs');
 const Promise = require('bluebird');
 
 const providers = ['local'];
+const oid = mongoose.Schema.Types.ObjectId;
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, index: { unique: true } },
   password: { type: String, required: true },
   provider: { type: String, required: true, enum: providers },
+  queue: [{ type: oid, required: true, ref: 'Podcast', unique: true }],
+  subscriptions: [{ type: oid, required: true, ref: 'Station', unique: true }],
 });
 
 const User = mongoose.model('User', userSchema);
