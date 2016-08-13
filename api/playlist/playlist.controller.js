@@ -5,27 +5,27 @@ const controller = {};
 
 controller.lists = (req, res) => {
   Playlist.find({}).exec()
-    .then(playlists => res.send(playlists))
+    .then(playlists => res.json({ data: playlists }))
     .catch(handleError(res));
 };
 
 controller.show = (req, res) => {
   const id = req.params.playlistId;
   Playlist.findById(id).exec()
-    .then(playlist => res.send(playlist))
+    .then(playlist => res.json({ data: playlist }))
     .catch(handleError(res));
 };
 
 controller.create = (req, res) => {
   const { name, owner } = req.body;
   Playlist.create({ name, owner })
-    .then(playlist => res.send(playlist))
+    .then((playlist) => res.json(playlist))
     .catch(handleError(res));
 };
 
 controller.delete = (req, res) => {
   Playlist.remove({ _id: req.params.playlistId })
-    .then(response => res.send(response))
+    .then(() => res.sendStatus(202))
     .catch(handleError(res));
 };
 
@@ -35,7 +35,7 @@ controller.addPodcast = (req, res) => {
       list.podcasts.push(req.body.podcastId);
       return list.save();
     })
-    .then(result => res.send(result))
+    .then(() => res.send(200))
     .catch(handleError(res));
 };
 

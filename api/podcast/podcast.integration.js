@@ -54,9 +54,9 @@ describe('Podcast API', () => {
       .expect(200)
       .expect('Content-Type', /json/)
       .then(res => {
-        res.body.length.should.equal(2);
-        res.body[0]._id.should.equal(podcast1.id);
-        res.body[1]._id.should.equal(podcast2.id);
+        res.body.data.length.should.equal(2);
+        res.body.data[0]._id.should.equal(podcast1.id);
+        res.body.data[1]._id.should.equal(podcast2.id);
       }));
   });
 });
