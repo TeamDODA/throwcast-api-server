@@ -30,10 +30,9 @@ controller.delete = (req, res) => {
 };
 
 controller.addPodcast = (req, res) => {
-  const { playlistId, podcastId } = req.params;
-  Playlist.findById(playlistId).exec()
+  Playlist.findById(req.params.playlistId).exec()
     .then(list => {
-      list.podcasts.push(podcastId);
+      list.podcasts.push(req.body.podcastId);
       return list.save();
     })
     .then(result => res.send(result))
