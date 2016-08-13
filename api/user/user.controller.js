@@ -4,7 +4,7 @@ const User = require('./user.model');
 
 const controller = {};
 
-controller.create = function create(req, res) {
+controller.create = (req, res) => {
   const { username, password } = req.body;
   User.create({ username, password, provider: 'local' })
     .then(user => signToken(user._id))
@@ -12,9 +12,10 @@ controller.create = function create(req, res) {
     .catch(validationError(res, 422));
 };
 
-controller.me = function me(req, res) {
-  const { _id, username } = req.user;
-  res.json({ _id, username });
+controller.me = (req, res) => {
+  User.findById(req.user._id).exec()
+    .then(user => res.json(user))
+    .catch(handleError(res));
 };
 
 controller.addStation = (req, res) => {
