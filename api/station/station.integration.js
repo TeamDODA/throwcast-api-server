@@ -32,6 +32,6 @@ describe('Station API', () => {
       .get('/api/stations')
       .expect(200)
       .expect('Content-Type', /json/)
-      .then(res => res.body.length.should.equal(2)));
+      .then(res => res.body.data.length.should.equal(2)));
   });
 });

@@ -5,7 +5,7 @@ const controller = {};
 
 controller.list = (req, res) => {
   Podcast.find({}).exec()
-    .then(podcasts => res.json(podcasts))
+    .then(podcasts => res.json({ data: podcasts }))
     .catch(handleError(res));
 };
 

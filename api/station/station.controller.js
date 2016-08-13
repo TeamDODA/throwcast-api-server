@@ -6,7 +6,7 @@ const controller = {};
 
 controller.list = (req, res) => {
   Station.find({}).exec()
-    .then(stations => res.json(stations))
+    .then(stations => res.json({ data: stations }))
     .catch(handleError(res));
 };
 
