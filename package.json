@@ -11,7 +11,8 @@
     "lint": "npm run lint:tests && npm run lint:scripts",
     "lint:tests": "eslint --ignore-path .eslintignore.test -c .eslintrc.test --ext .js .; exit 0",
     "lint:scripts": "eslint . --ext .js; exit 0",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "seed": "node ./config/seed.js"
   },
   "repository": {
     "type": "git",
