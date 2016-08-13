@@ -26,7 +26,7 @@ const stations = [{
 
 const podcasts = [{
   title: 'Weekly Roundup: Thursday, August 11',
-  link: 'http://play.podtrac.com/npr-510019/npr.mc.tritondigital.com/ALLSONGS_PODCAST/media/anon.npr-mp3/npr/asc/2016/07/20160719_asc_wholeshow.mp3?orgId=1&d=1889&p=510019&story=486630225&t=podcast&e=486630225&ft=pod&f=510019',
+  link: 'http://play.podtrac.com/npr-510310/npr.mc.tritondigital.com/NPR_510310/media/anon.npr-mp3/npr/nprpolitics/2016/03/20160317_nprpolitics_roundup.mp3?orgId=1&d=2447&p=510310&story=470832129&t=podcast&e=470832129&ft=pod&f=510310',
   description: 'Weekly Round-up 8/11',
   pubDate: 'Thu, 04 Aug 2016 20:52:00 -0400',
   imageUrl: 'https://media.npr.org/assets/img/2015/11/13/nprpolitics_red1400px_sq-6bc03b536409ec88fd8d3abb637b560e93865bad.png?s=1400',
