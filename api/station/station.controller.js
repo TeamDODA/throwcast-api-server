@@ -12,8 +12,8 @@ controller.list = (req, res) => {
 
 controller.listPodcasts = (req, res) => {
   Podcast.find({ station: req.params.stationId }).exec()
-		.then(podcasts => res.json(podcasts))
-		.catch(handleError(res));
+    .then(podcasts => res.json({ data: podcasts }))
+    .catch(handleError(res));
 };
 
 module.exports = controller;
