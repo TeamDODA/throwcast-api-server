@@ -19,7 +19,7 @@ controller.show = (req, res) => {
 controller.create = (req, res) => {
   const { name, owner } = req.body;
   Playlist.create({ name, owner })
-    .then((playlist) => res.json(playlist))
+    .then(playlist => res.json(playlist))
     .catch(handleError(res));
 };
 
