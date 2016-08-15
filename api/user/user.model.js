@@ -9,7 +9,6 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true, index: { unique: true } },
   password: { type: String, required: true },
   provider: { type: String, required: true, enum: providers },
-  queue: [{ type: oid, required: true, ref: 'Podcast', unique: true }],
   subscriptions: [{ type: oid, required: true, ref: 'Station', unique: true }],
 });
 
