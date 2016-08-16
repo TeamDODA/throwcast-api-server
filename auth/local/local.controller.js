@@ -13,7 +13,7 @@ passport.use(new LocalStrategy({
       if (!user) {
         return done(null, false, { message: 'Invalid username' });
       }
-      return User.comparePassword(password, user.password)
+      return user.authenticate(password)
         .then(authenticated => {
           if (!authenticated) {
             return done(null, false, { message: 'Invalid password' });
