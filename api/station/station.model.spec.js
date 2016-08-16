@@ -9,7 +9,7 @@ const imageUrl = 'https://some.where.com/image.png';
 
 describe('Station Model', () => {
   before(() => db.connect().then(cleanModels));
-  after(() => db.connection.close());
+  after(() => cleanModels().then(() => db.connection.close()));
 
   afterEach(() => cleanModels());
 

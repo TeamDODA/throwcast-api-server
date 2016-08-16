@@ -9,7 +9,7 @@ const userRecord = {
 
 describe('User Model', () => {
   before(() => db.connect().then(cleanModels));
-  after(() => db.connection.close());
+  after(() => cleanModels().then(() => db.connection.close()));
 
   afterEach(() => cleanModels());
 

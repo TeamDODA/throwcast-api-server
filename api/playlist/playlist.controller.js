@@ -17,8 +17,12 @@ controller.show = (req, res) => {
 };
 
 controller.create = (req, res) => {
-  const { name, owner } = req.body;
+  const { name, owner, podcast } = req.body;
   Playlist.create({ name, owner })
+    .then(playlist => {
+      playlist.podcasts.push(podcast);
+      return playlist.save();
+    })
     .then(playlist => res.json(playlist))
     .catch(handleError(res));
 };
@@ -35,7 +39,7 @@ controller.addPodcast = (req, res) => {
       list.podcasts.push(req.body.podcastId);
       return list.save();
     })
-    .then(() => res.send(200))
+    .then(() => res.sendStatus(200))
     .catch(handleError(res));
 };
 
