@@ -49,15 +49,15 @@ describe('User Model', () => {
       const validUser = { username, password, provider: 'local' };
       beforeEach(() => User.create(validUser));
 
-      it('should be rejected with a MongoError', () => User.create(validUser)
+      it('should be rejected with a ValidationError', () => User.create(validUser)
         .should.eventually.be.rejected
         .and.be.an.instanceOf(Error)
-        .and.have.property('name', 'MongoError'));
+        .and.have.property('name', 'ValidationError'));
 
       it('should be rejected and have error code of 11000', () => User.create(validUser)
         .should.eventually.be.rejected
         .and.be.an.instanceOf(Error)
-        .and.have.property('code', 11000));
+        .and.have.property('message', 'User validation failed'));
     });
 
     describe('when given a record with no username', () => {
@@ -78,6 +78,21 @@ describe('User Model', () => {
     describe('when given a record with no password', () => {
       const { username } = userRecord;
       const invalidUser = { username, provider: 'local' };
+
+      it('should be rejected with a ValidationError', () => User.create(invalidUser)
+        .should.eventually.be.rejected
+        .and.be.an.instanceOf(Error)
+        .and.have.property('name', 'ValidationError'));
+
+      it('should be rejected with message User validation failed', () => User.create(invalidUser)
+        .should.eventually.be.rejected
+        .and.be.an.instanceOf(Error)
+        .and.have.property('message', 'User validation failed'));
+    });
+
+    describe('when given a record with a blank password', () => {
+      const { username } = userRecord;
+      const invalidUser = { username, password: '', provider: 'local' };
 
       it('should be rejected with a ValidationError', () => User.create(invalidUser)
         .should.eventually.be.rejected
