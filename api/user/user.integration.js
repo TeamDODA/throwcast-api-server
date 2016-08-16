@@ -92,13 +92,13 @@ describe('User API', () => {
         .send({ username: 'username1', password: 'somepassword' })
         .expect(422));
 
-      it('should send code 11000', () => request(server)
+      it('should send User validation failed message', () => request(server)
         .post('/api/users')
         .send({ username: 'username1', password: 'somepassword' })
         .then(res => {
           res.body.should.not.have.property('token');
           res.body.should.have.property('message');
-          res.body.message.should.equal('Username already in use');
+          res.body.message.should.equal('User validation failed');
         }));
     });
   });
