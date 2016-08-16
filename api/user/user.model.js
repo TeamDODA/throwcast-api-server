@@ -34,15 +34,23 @@ UserSchema
       });
   }, 'Username is already in use');
 
+UserSchema.methods = {
+  authenticate(password) {
+    return compare(password, this.password);
+  },
+  encryptPassword(password) {
+    return cipher(password, null, null);
+  },
+};
+
 UserSchema
   .pre('save', function preSave(next) {
-    cipher(this.password, null, null).bind(this)
-      .then(hash => (this.password = hash))
+    if (!this.isModified('password')) {
+      return next();
+    }
+    return this.encryptPassword(this.password)
+      .then(hashedPassword => (this.password = hashedPassword))
       .then(next);
   });
 
-const User = mongoose.model('User', UserSchema);
-
-User.comparePassword = (candidatePw, savedPw) => compare(candidatePw, savedPw);
-
-module.exports = User;
+module.exports = mongoose.model('User', UserSchema);
