@@ -4,24 +4,24 @@ const User = require('./user.model');
 
 const controller = {};
 
-controller.create = (req, res) => {
+controller.create = function create(req, res) {
   const { username, password } = req.body;
-  User.create({ username, password, provider: 'local' })
+  return User.create({ username, password, provider: 'local' })
     .then(user => signToken(user._id))
     .then(token => res.json({ token }))
     .catch(validationError(res, 422));
 };
 
-controller.me = (req, res) => {
-  User.findById(req.user._id)
+controller.me = function me(req, res) {
+  return User.findById(req.user._id)
     .populate('subscriptions')
     .exec()
     .then(user => res.json(user))
     .catch(handleError(res));
 };
 
-controller.addStation = (req, res) => {
-  User.findById(req.params.userId).exec()
+controller.addStation = function addStation(req, res) {
+  return User.findById(req.params.userId).exec()
     .then(user => {
       user.subscriptions.push({ stations: req.body.stationId });
       return user.save();
@@ -30,9 +30,9 @@ controller.addStation = (req, res) => {
     .catch(handleError(res));
 };
 
-controller.deleteStation = (req, res) => {
+controller.deleteStation = function deleteStation(req, res) {
   const { userId, stationId } = req.params;
-  User.update(
+  return User.update(
     { _id: userId },
     { $pull: { subscriptions: stationId } }
   ).exec()
