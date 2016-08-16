@@ -21,7 +21,7 @@ User.comparePassword = (candidatePw, savedPw) => compare(candidatePw, savedPw);
 userSchema.pre('save', function preSave(next) {
   cipher(this.password, null, null).bind(this)
     .then(hash => (this.password = hash))
-    .then(() => next());
+    .then(next);
 });
 
 module.exports = User;

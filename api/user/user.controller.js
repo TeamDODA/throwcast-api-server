@@ -13,7 +13,9 @@ controller.create = (req, res) => {
 };
 
 controller.me = (req, res) => {
-  User.findById(req.user._id).exec()
+  User.findById(req.user._id)
+    .populate('subscriptions')
+    .exec()
     .then(user => res.json(user))
     .catch(handleError(res));
 };
