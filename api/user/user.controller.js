@@ -43,29 +43,4 @@ controller.deleteStation = (req, res) => {
     .catch(handleError(res));
 };
 
-controller.addQueue = (req, res) => {
-  User.findById(req.params.userId).exec()
-    .then(user => {
-      user.queue.push({ podcasts: req.body.podcastId });
-      return user.save();
-    })
-    .then(results => res.send(results))
-    .catch(handleError(res));
-};
-
-controller.deleteQueue = (req, res) => {
-  const { userId, podcastId } = req.params;
-  User.update(
-    { _id: userId },
-    { $pull: { queue: podcastId } }
-  ).exec()
-    .then(response => {
-      if (response.nModified > 0) {
-        return res.sendStatus(202);
-      }
-      return res.send('podcast not found');
-    })
-    .catch(handleError(res));
-};
-
 module.exports = controller;
