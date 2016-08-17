@@ -9,6 +9,8 @@ const podcastSchema = new mongoose.Schema({
   pubDate: { type: Date },
   imageUrl: { type: String },
   station: { type: oid, required: true, ref: 'Station' },
+}, {
+  timestamps: true,
 });
 
 const Podcast = mongoose.model('Podcast', podcastSchema);

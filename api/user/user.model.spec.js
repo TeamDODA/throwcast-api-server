@@ -34,9 +34,9 @@ describe('User Model', () => {
           .should.have.property('subscriptions')
           .and.have.length(0));
 
-        it('should have a username property (not the supplied password)', () => createdUser
-          .should.have.property('password')
-          .and.not.equal(validUser.password));
+        it('should have a username property', () => createdUser
+          .should.have.property('username')
+          .and.equal(validUser.username));
 
         it('should have a hashed password property (not the supplied password)', () => createdUser
           .should.have.property('password')
