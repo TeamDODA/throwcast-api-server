@@ -1,6 +1,6 @@
 const { cleanModels } = require('../../utils/testing');
 const db = require('../../db');
-var proxyquire =  require('proxyquire');
+const proxyquire = require('proxyquire');
 const { mockReq, mockRes } = require('sinon-express-mock');
 
 const token = 'SOME_TOKEN';
@@ -31,8 +31,8 @@ describe('User Controller', () => {
 
   describe('#create', () => {
     describe('with valid req.body', () => {
-      let req = mockReq({ body: userRecord });
-      let res = mockRes();
+      const req = mockReq({ body: userRecord });
+      const res = mockRes();
 
       it('should signToken and send response with token', () => controller.create(req, res)
         .then(() => signToken.should.be.calledOnce)
@@ -40,8 +40,8 @@ describe('User Controller', () => {
     });
 
     describe('with invalid req.body', () => {
-      let req = mockReq({ body: {} });
-      let res = mockRes();
+      const req = mockReq({ body: {} });
+      const res = mockRes();
 
       it('should be rejected with ValidationError', () => controller.create(req, res)
         .should.eventually.be.rejected
