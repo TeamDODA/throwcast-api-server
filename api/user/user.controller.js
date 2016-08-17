@@ -1,6 +1,7 @@
 const { validationError, handleError } = require('../../utils');
 const { signToken } = require('../../auth/auth.service');
 const User = require('./user.model');
+const Station = require('../station/station.model');
 
 const controller = {};
 
@@ -13,35 +14,27 @@ controller.create = function create(req, res) {
 };
 
 controller.me = function me(req, res) {
-  return User.findById(req.user._id)
-    .populate('subscriptions')
-    .exec()
+  const opts = [{ path: 'subscriptions', model: 'Station' }];
+  return User.populate(req.user, opts)
     .then(user => res.json(user))
     .catch(handleError(res));
 };
 
-controller.addStation = function addStation(req, res) {
-  return User.findById(req.params.userId).exec()
-    .then(user => {
-      user.subscriptions.push({ stations: req.body.stationId });
-      return user.save();
-    })
-    .then(results => res.send(results))
+controller.subscribe = function subscribe(req, res) {
+  let station;
+  return Station.findById(req.body.stationId)
+    .then(found => (station = found))
+    .then(() => req.user.subscriptions.push(station._id))
+    .then(() => req.user.save())
+    .then(() => res.json(station))
     .catch(handleError(res));
 };
 
-controller.deleteStation = function deleteStation(req, res) {
-  const { userId, stationId } = req.params;
-  return User.update(
-    { _id: userId },
-    { $pull: { subscriptions: stationId } }
-  ).exec()
-    .then(response => {
-      if (response.nModified > 0) {
-        return res.sendStatus(202);
-      }
-      return res.send('station not found');
-    })
+controller.unsubscribe = function unsubscribe(req, res) {
+  const { stationId } = req.params;
+  req.user.subscriptions.pull(stationId);
+  return req.user.save()
+    .then(() => res.sendStatus(202))
     .catch(handleError(res));
 };
 
