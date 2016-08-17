@@ -4,7 +4,7 @@ const Podcast = require('./podcast.model');
 const controller = {};
 
 controller.list = (req, res) => {
-  Podcast.find({}).exec()
+  Podcast.find({}).sort('-createdAt').exec()
     .then(podcasts => res.json({ data: podcasts }))
     .catch(handleError(res));
 };

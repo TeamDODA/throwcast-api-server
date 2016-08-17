@@ -18,11 +18,7 @@ controller.show = (req, res) => {
 
 controller.create = (req, res) => {
   const { name, owner, podcast } = req.body;
-  Playlist.create({ name, owner })
-    .then(playlist => {
-      playlist.podcasts.push(podcast);
-      return playlist.save();
-    })
+  Playlist.create({ name, owner, podcasts: [podcast] })
     .then(playlist => res.json(playlist))
     .catch(handleError(res));
 };
@@ -48,7 +44,7 @@ controller.removePodcast = (req, res) => {
   Playlist.update(
     { _id: playlistId },
     { $pull: { podcasts: podcastId } }
-    ).exec()
+  ).exec()
     .then(response => {
       if (response.nModified > 0) {
         return res.sendStatus(202);
