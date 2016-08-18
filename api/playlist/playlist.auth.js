@@ -1,4 +1,4 @@
-const { handleError } = require('../../utils');
+const { handleError, handleEntityNotFound, decorateRequest } = require('../../utils');
 const { isAuthenticated } = require('../../auth/auth.service');
 const Playlist = require('./playlist.model');
 
@@ -6,14 +6,8 @@ const auth = {};
 
 auth.populateReqPlaylist = function populateReqPlaylist(req, res, next) {
   return Playlist.findById(req.params.playlistId)
-    .populate('podcasts')
-    .then(playlist => {
-      if (!playlist) {
-        return res.sendStatus(404);
-      }
-      req.playlist = playlist; // eslint-disable-line no-param-reassign
-      return next();
-    })
+    .then(handleEntityNotFound(res))
+    .then(decorateRequest(req, 'playlist', next))
     .catch(handleError(res));
 };
 

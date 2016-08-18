@@ -1,5 +1,7 @@
-const { handleError } = require('../../utils');
+const u = require('../../utils');
 const Playlist = require('./playlist.model');
+const Podcast = require('../podcast/podcast.model');
+
 
 const controller = {};
 
@@ -8,49 +10,64 @@ controller.lists = (req, res) => {
     .populate('podcasts')
     .exec()
     .then(playlists => res.json({ data: playlists }))
-    .catch(handleError(res));
+    .catch(u.handleError(res));
 };
 
 controller.create = (req, res) => {
   const { name, podcast } = req.body;
   Playlist.create({ name, owner: req.user._id, podcasts: [podcast].filter(Boolean) })
     .then(playlist => res.json(playlist))
-    .catch(handleError(res));
+    .catch(u.handleError(res));
 };
 
 controller.show = (req, res) => {
-  res.json(req.playlist);
+  const opts = [{ path: 'podcasts', model: 'Podcast' }];
+  Playlist.populate(req.playlist, opts)
+    .then(playlist => res.json(playlist))
+    .catch(u.handleError(res));
 };
 
 controller.delete = (req, res) => {
   Playlist.remove(req.playlist)
     .then(() => res.sendStatus(202))
-    .catch(handleError(res));
+    .catch(u.handleError(res));
 };
 
 controller.addPodcast = (req, res) => {
-  Playlist.findById(req.params.playlistId).exec()
-    .then(list => {
-      list.podcasts.push(req.body.podcastId);
-      return list.save();
+  Podcast.findById(req.body.podcastId).exec()
+    .then(u.handleEntityNotFound(res))
+    .then(entity => {
+      if (entity) {
+        const query = { _id: req.playlist._id, podcasts: { $ne: entity._id } };
+        const opts = { $push: { podcasts: entity._id } };
+        return Playlist.update(query, opts).exec()
+          .then(summary => {
+            if (summary.ok && !summary.nModified) {
+              throw new Error('Podcast already in playlist');
+            }
+            return entity;
+          })
+          .catch(u.handleError(res, 400));
+      }
+      return null;
     })
-    .then(() => res.sendStatus(200))
-    .catch(handleError(res));
+    .then(u.respondWithResult(res))
+    .catch(u.handleError(res));
 };
 
 controller.removePodcast = (req, res) => {
-  const { playlistId, podcastId } = req.params;
-  Playlist.update(
-    { _id: playlistId },
-    { $pull: { podcasts: podcastId } }
-  ).exec()
-    .then(response => {
-      if (response.nModified > 0) {
-        return res.sendStatus(202);
+  u.safeObjectIdCast(req.params.podcastId)
+    .then(podcastId => {
+      if (req.playlist.podcasts.indexOf(podcastId) > -1) {
+        req.playlist.podcasts.pull(podcastId);
+        req.playlist.save()
+          .then(() => res.sendStatus(202))
+          .catch(u.handleError(res));
+      } else {
+        u.handleError(res, 404)(new Error('Podcast not in playlist'));
       }
-      return res.send('podcast not found');
     })
-    .catch(handleError(res));
+    .catch(u.handleError(res, 400));
 };
 
 module.exports = controller;
