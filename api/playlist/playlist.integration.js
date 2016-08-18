@@ -21,6 +21,7 @@ describe('Playlists API', () => {
   let token2;
   let user1;
   let user2;
+  let agent;
   beforeEach(() => Station
     .create({
       title: 'station1',
@@ -49,25 +50,26 @@ describe('Playlists API', () => {
     .then(() => {
       const app = require('../../server', { bustCache: true });
       server = app.listen(app.get('port'), app.get('ip'));
+      return (agent = request(app));
     })
-    .then(() => request(server)
+    .then(() => agent
       .post('/auth/local')
       .send({ username: 'username1', password: 'password1', provider })
       .then(res => (token1 = res.body.token)))
-    .then(() => request(server)
+    .then(() => agent
       .post('/auth/local')
       .send({ username: 'username2', password: 'password2', provider })
       .then(res => (token2 = res.body.token))));
   afterEach(() => cleanModels().then(() => server.close()));
 
-  describe('/api/playlists/', () => {
+  describe('/api/playlists', () => {
     describe('POST', () => {
-      it('should respond with 401 if not authenticated', () => request(server)
+      it('should respond with 401 Not Authorized', () => agent
         .post('/api/playlists')
         .expect(401));
 
       describe('with a podcast', () => {
-        it('should create playlist with the podcast in podcasts', () => request(server)
+        it('should create playlist with the podcast in podcasts', () => agent
           .post('/api/playlists/')
           .set('authorization', `Bearer ${token1}`)
           .send({ name: 'test', podcast: podcast1._id })
@@ -82,7 +84,7 @@ describe('Playlists API', () => {
       });
 
       describe('with no podcast', () => {
-        it('should create playlist with an empty podcasts field', () => request(server)
+        it('should create playlist with an empty podcasts array', () => agent
           .post('/api/playlists/')
           .set('authorization', `Bearer ${token1}`)
           .send({ name: 'test' })
@@ -97,8 +99,8 @@ describe('Playlists API', () => {
       });
 
       describe('with invalid request', () => {
-        describe('-- invalid podcastId', () => {
-          it('should respond with 500', () => request(server)
+        describe('-- podcastId is not an objectId', () => {
+          it('should respond with 500', () => agent
             .post('/api/playlists/')
             .set('authorization', `Bearer ${token1}`)
             .send({ name: 'test', podcast: 'foo' })
@@ -106,7 +108,7 @@ describe('Playlists API', () => {
         });
 
         describe('-- name missing', () => {
-          it('should respond with 500', () => request(server)
+          it('should respond with 500', () => agent
             .post('/api/playlists/')
             .set('authorization', `Bearer ${token1}`)
             .send({})
@@ -128,29 +130,27 @@ describe('Playlists API', () => {
           podcasts: [podcast2._id],
         })));
 
-      it('should respond with 401 if not authenticated', () => request(server)
+      it('should respond with 401 Not Authorized', () => agent
         .get('/api/playlists')
         .expect(401));
 
-      it('should send back list of all playlist', () => request(server)
+      it('should send back list of all playlist', () => agent
         .get('/api/playlists/')
         .set('authorization', `Bearer ${token1}`)
         .expect(200)
         .expect('Content-Type', /json/)
         .then(res => res.body.data.length.should.equal(2)));
 
-      it('should populate podcasts in the playlists', () => request(server)
+      it('should populate podcasts in the playlists', () => agent
         .get('/api/playlists/')
         .set('authorization', `Bearer ${token1}`)
-        .then(res => {
-          res.body.data[0].podcasts.forEach(item => {
-            item.should.have.property('_id');
-            item.should.have.property('title');
-            item.should.have.property('link');
-            item.should.have.property('description');
-            item.should.have.property('station');
-          });
-        }));
+        .then(res => res.body.data[0].podcasts.forEach(item => {
+          item.should.have.property('_id');
+          item.should.have.property('title');
+          item.should.have.property('link');
+          item.should.have.property('description');
+          item.should.have.property('station');
+        })));
     });
   });
 
@@ -171,18 +171,18 @@ describe('Playlists API', () => {
       }))
       .then(created => (playlist2 = created)));
 
-    it('should respond with 401 if not authenticated', () => request(server)
-      .get(`/api/playlists/${playlist1.id}`)
-      .expect(401));
-
     describe('GET', () => {
-      it('should send back the requested playlist', () => request(server)
+      it('should respond with 401 Not Authorized', () => agent
+        .get(`/api/playlists/${playlist1.id}`)
+        .expect(401));
+
+      it('should send back the requested playlist', () => agent
         .get(`/api/playlists/${playlist1.id}`)
         .set('authorization', `Bearer ${token1}`)
         .expect(200)
         .then(res => res.body._id.should.equal(playlist1.id)));
 
-      it('should send back the requested playlist', () => request(server)
+      it('should send back the requested playlist', () => agent
         .get(`/api/playlists/${playlist2.id}`)
         .set('authorization', `Bearer ${token1}`)
         .expect(200)
@@ -190,14 +190,18 @@ describe('Playlists API', () => {
     });
 
     describe('DELETE', () => {
+      it('should respond with 401 Not Authorized', () => agent
+        .delete(`/api/playlists/${playlist1.id}`)
+        .expect(401));
+
       describe('when the user is the owner of the playlist', () => {
-        it('should delete the requested playlist', () => request(server)
+        it('should delete the requested playlist', () => agent
           .delete(`/api/playlists/${playlist1.id}`)
           .set('authorization', `Bearer ${token1}`)
           .expect(202)
           .then(() => Playlist.findById(playlist1._id).should.eventually.be.null));
 
-        it('should delete the requested playlist', () => request(server)
+        it('should delete the requested playlist', () => agent
           .delete(`/api/playlists/${playlist2.id}`)
           .set('authorization', `Bearer ${token2}`)
           .expect(202)
@@ -205,12 +209,12 @@ describe('Playlists API', () => {
       });
 
       describe('when the user is not the owner of the playlist', () => {
-        it('should respond with 403 Forbidden', () => request(server)
+        it('should respond with 403 Forbidden', () => agent
           .delete(`/api/playlists/${playlist1.id}`)
           .set('authorization', `Bearer ${token2}`)
           .expect(403));
 
-        it('should respond with 403 Forbidden', () => request(server)
+        it('should respond with 403 Forbidden', () => agent
           .delete(`/api/playlists/${playlist2.id}`)
           .set('authorization', `Bearer ${token1}`)
           .expect(403));
@@ -218,41 +222,149 @@ describe('Playlists API', () => {
     });
   });
 
-  describe('Add to playlist', () => {
-    let playlist;
+  describe('/api/playlists/:playlistId/podcasts', () => {
+    let playlist1;
     beforeEach(() => Playlist
       .create({
-        name: 'test',
+        name: 'test playlist1',
         owner: user1._id,
         podcasts: [podcast1._id],
       })
-      .then(createdPlaylist => (playlist = createdPlaylist)));
+      .then(created => (playlist1 = created)));
 
-    it('should add podcast to playlist', () => request(server)
-      .post(`/api/playlists/${playlist.id}/podcasts/`)
-      .send({ podcastId: podcast2._id })
-      .expect(200)
-      .then(() => Playlist.findById(playlist.id).exec())
-      .then(found => {
-        found.podcasts[0].should.deep.equal(podcast1._id);
-        found.podcasts[1].should.deep.equal(podcast2._id);
-      }));
+    describe('POST', () => {
+      it('should respond with 401 Not Authorized', () => agent
+        .post(`/api/playlists/${playlist1.id}/podcasts/`)
+        .expect(401));
+
+      describe('when uri is invalid', () => {
+        describe('-- playlist does not exist', () => {
+          it('should respond with 404 Not Found', () => agent
+            .post(`/api/playlists/${user1.id}/podcasts/`)
+            .set('authorization', `Bearer ${token1}`)
+            .expect(404));
+        });
+
+        describe('-- playlistId is not an objectId', () => {
+          it('should respond with 500', () => agent
+            .post('/api/playlists/foo/podcasts/')
+            .set('authorization', `Bearer ${token1}`)
+            .expect(500));
+        });
+      });
+
+      describe('when the user is the owner of the playlist', () => {
+        it('should add podcast to playlist', () => agent
+          .post(`/api/playlists/${playlist1.id}/podcasts/`)
+          .set('authorization', `Bearer ${token1}`)
+          .send({ podcastId: podcast2._id })
+          .expect(200)
+          .then(() => Playlist.findById(playlist1._id).exec())
+          .then(found => {
+            found.podcasts[0].should.deep.equal(podcast1._id);
+            found.podcasts[1].should.deep.equal(podcast2._id);
+          }));
+
+        describe('and the request body is invalid', () => {
+          describe('-- podcast does not exist', () => {
+            it('should respond with 404 Not Found', () => agent
+              .post(`/api/playlists/${playlist1.id}/podcasts/`)
+              .set('authorization', `Bearer ${token1}`)
+              .send({ podcastId: user1._id })
+              .expect(404));
+          });
+
+          describe('-- podcastId is not an objectId', () => {
+            it('should respond with 500', () => agent
+              .post(`/api/playlists/${playlist1.id}/podcasts/`)
+              .set('authorization', `Bearer ${token1}`)
+              .send({ podcastId: 'foo' })
+              .expect(500));
+          });
+        });
+      });
+
+      describe('when the user is not the owner of the playlist', () => {
+        it('should respond with 403 Forbidden', () => agent
+          .post(`/api/playlists/${playlist1.id}/podcasts/`)
+          .set('authorization', `Bearer ${token2}`)
+          .send({ podcastId: podcast2._id })
+          .expect(403));
+      });
+
+      describe('when the podcast is already in the playlist', () => {
+        it('should respond with 400 Bad Request', () => agent
+          .post(`/api/playlists/${playlist1.id}/podcasts/`)
+          .set('authorization', `Bearer ${token1}`)
+          .send({ podcastId: podcast1._id })
+          .expect(400));
+      });
+    });
   });
 
-  describe('Delete from playlist', () => {
-    let playlist;
+  describe('/api/playlists/:playlistId/podcasts/:podcastId', () => {
+    let playlist1;
     beforeEach(() => Playlist
       .create({
-        name: 'test',
+        name: 'test playlist1',
         owner: user1._id,
         podcasts: [podcast1._id],
       })
-      .then(createdPlaylist => (playlist = createdPlaylist)));
+      .then(created => (playlist1 = created)));
 
-    it('should delete podcast to playlist', () => request(server)
-      .delete(`/api/playlists/${playlist.id}/podcasts/${podcast1._id}`)
-      .expect(202)
-      .then(() => Playlist.find({}).exec())
-      .then(list => list[0].podcasts.length.should.equal(0)));
+    describe('DELETE', () => {
+      it('should respond with 401 Not Authorized', () => agent
+        .delete(`/api/playlists/${playlist1.id}/podcasts/${podcast1.id}`)
+        .expect(401));
+
+      describe('when uri is invalid', () => {
+        describe('-- playlist does not exist', () => {
+          it('should respond with 404 Not Found', () => agent
+            .delete(`/api/playlists/${user1.id}/podcasts/${podcast1.id}`)
+            .set('authorization', `Bearer ${token1}`)
+            .expect(404));
+        });
+
+        describe('-- playlistId is not an objectId', () => {
+          it('should respond with 500', () => agent
+            .delete(`/api/playlists/foo/podcasts/${podcast1.id}`)
+            .set('authorization', `Bearer ${token1}`)
+            .expect(500));
+        });
+      });
+
+      describe('when the user is the owner of the playlist', () => {
+        it('should respond 202 and delete podcast from playlist', () => agent
+          .delete(`/api/playlists/${playlist1.id}/podcasts/${podcast1.id}`)
+          .set('authorization', `Bearer ${token1}`)
+          .expect(202)
+          .then(() => Playlist.findById(playlist1._id)
+            .should.eventually.have.property('podcasts')
+            .and.have.length(0)));
+
+        describe('and the uri is invalid', () => {
+          describe('-- podcast does not exist', () => {
+            it('should respond with 404 Not Found', () => agent
+              .delete(`/api/playlists/${playlist1.id}/podcasts/${podcast2.id}`)
+              .set('authorization', `Bearer ${token1}`)
+              .expect(404));
+          });
+
+          describe('-- podcastId is not an objectId', () => {
+            it('should respond with 404 Not Found', () => agent
+              .delete(`/api/playlists/${playlist1.id}/podcasts/foo`)
+              .set('authorization', `Bearer ${token1}`)
+              .expect(400));
+          });
+        });
+      });
+
+      describe('when the user is not the owner of the playlist', () => {
+        it('should respond with 403 Forbidden', () => agent
+          .delete(`/api/playlists/${playlist1.id}/podcasts/${podcast1.id}`)
+          .set('authorization', `Bearer ${token2}`)
+          .expect(403));
+      });
+    });
   });
 });

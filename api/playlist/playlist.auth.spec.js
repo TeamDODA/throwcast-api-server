@@ -69,20 +69,8 @@ describe('Playlist Auth', () => {
           req.playlist.should.have.property('_id');
           req.playlist.should.have.property('name', 'Awesome playlist');
           req.playlist.should.have.property('podcasts');
-          req.playlist.podcasts.map(item => item.id).should.contain(podcast.id);
+          req.playlist.podcasts.should.contain(podcast._id);
           next.should.have.been.calledWith();
-        }));
-
-      it('should populate podcasts on the playlist', () => controller
-        .populateReqPlaylist(req, res, next)
-        .then(() => {
-          req.playlist.podcasts.forEach(item => {
-            item.should.have.property('_id');
-            item.should.have.property('title');
-            item.should.have.property('link');
-            item.should.have.property('description');
-            item.should.have.property('station');
-          });
         }));
     });
 
