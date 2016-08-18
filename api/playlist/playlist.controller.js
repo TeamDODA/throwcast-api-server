@@ -19,14 +19,11 @@ controller.create = (req, res) => {
 };
 
 controller.show = (req, res) => {
-  const id = req.params.playlistId;
-  Playlist.findById(id).exec()
-    .then(playlist => res.json({ data: playlist }))
-    .catch(handleError(res));
+  res.json(req.playlist);
 };
 
 controller.delete = (req, res) => {
-  Playlist.remove({ _id: req.params.playlistId })
+  Playlist.remove(req.playlist)
     .then(() => res.sendStatus(202))
     .catch(handleError(res));
 };
