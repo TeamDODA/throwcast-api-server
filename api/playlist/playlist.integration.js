@@ -7,6 +7,10 @@ const User = require('../user/user.model');
 const Playlist = require('./playlist.model');
 const db = require('../../db');
 
+const username = 'username';
+const password = 'password';
+const provider = 'local';
+
 describe('Playlists API', () => {
   before(() => db.connect().then(cleanModels));
   after(() => cleanModels().then(() => db.connection.close()));
@@ -15,7 +19,8 @@ describe('Playlists API', () => {
   let station1;
   let podcast1;
   let podcast2;
-  let user1;
+  let token;
+  let user;
   beforeEach(() => Station
     .create({
       title: 'station1',
@@ -37,44 +42,105 @@ describe('Playlists API', () => {
       station: station1._id,
     }))
     .then(created => (podcast2 = created))
-    .then(() => User.create({
-      username: 'Testing1',
-      password: 'Testing1',
-      provider: 'local',
-    }))
-    .then(created => (user1 = created))
+    .then(() => User.create({ username, password, provider }))
+    .then(created => (user = created))
     .then(() => {
       const app = require('../../server', { bustCache: true });
       server = app.listen(app.get('port'), app.get('ip'));
-    }));
+    })
+    .then(() => request(server)
+      .post('/auth/local')
+      .send({ username, password })
+      .then(res => (token = res.body.token))));
   afterEach(() => cleanModels().then(() => server.close()));
 
-  describe('Post /', () => {
-    it('should create playlist', () => request(server)
-      .post('/api/playlists/')
-      .send({
-        name: 'test',
-        owner: user1._id,
-        podcast: podcast1._id,
-      })
-      .expect(200)
-      .expect('Content-Type', /json/)
-      .then(res => res.body._id.should.exist));
-  });
+  describe('/api/playlists/', () => {
+    describe('POST', () => {
+      it('should respond with 401 if not authenticated', () => request(server)
+        .post('/api/playlists')
+        .expect(401));
 
-  describe('Get /', () => {
-    beforeEach(() => Playlist
-      .create({
-        name: 'test',
-        owner: user1._id,
-        podcasts: [podcast1._id],
-      }));
+      describe('with a podcast', () => {
+        it('should create playlist with the podcast in podcasts', () => request(server)
+          .post('/api/playlists/')
+          .set('authorization', `Bearer ${token}`)
+          .send({ name: 'test', podcast: podcast1._id })
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .then(res => {
+            res.body.should.have.property('_id');
+            res.body.should.have.property('name', 'test');
+            res.body.should.have.property('podcasts');
+            res.body.podcasts.should.have.length(1);
+          }));
+      });
 
-    it('Should send back list of playlist', () => request(server)
-      .get('/api/playlists/')
-      .expect(200)
-      .expect('Content-Type', /json/)
-      .then(res => res.body.data.length.should.equal(1)));
+      describe('with no podcast', () => {
+        it('should create playlist with an empty podcasts field', () => request(server)
+          .post('/api/playlists/')
+          .set('authorization', `Bearer ${token}`)
+          .send({ name: 'test' })
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .then(res => {
+            res.body.should.have.property('_id');
+            res.body.should.have.property('name', 'test');
+            res.body.should.have.property('podcasts');
+            res.body.podcasts.should.have.length(0);
+          }));
+      });
+
+      describe('with invalid request', () => {
+        describe('-- invalid podcastId', () => {
+          it('should respond with 500', () => request(server)
+            .post('/api/playlists/')
+            .set('authorization', `Bearer ${token}`)
+            .send({ name: 'test', podcast: 'foo' })
+            .expect(500));
+        });
+
+        describe('-- name missing', () => {
+          it('should respond with 500', () => request(server)
+            .post('/api/playlists/')
+            .set('authorization', `Bearer ${token}`)
+            .send({})
+            .expect(500));
+        });
+      });
+    });
+
+    describe('GET', () => {
+      beforeEach(() => Playlist
+        .create({
+          name: 'test',
+          owner: user._id,
+          podcasts: [podcast1._id],
+        }));
+
+      it('should respond with 401 if not authenticated', () => request(server)
+        .get('/api/playlists')
+        .expect(401));
+
+      it('should send back list of all playlist', () => request(server)
+        .get('/api/playlists/')
+        .set('authorization', `Bearer ${token}`)
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .then(res => res.body.data.length.should.equal(1)));
+
+      it('should populate podcasts in the playlists', () => request(server)
+        .get('/api/playlists/')
+        .set('authorization', `Bearer ${token}`)
+        .then(res => {
+          res.body.data[0].podcasts.forEach(item => {
+            item.should.have.property('_id');
+            item.should.have.property('title');
+            item.should.have.property('link');
+            item.should.have.property('description');
+            item.should.have.property('station');
+          });
+        }));
+    });
   });
 
   describe('Get specific playlist', () => {
@@ -82,7 +148,7 @@ describe('Playlists API', () => {
     beforeEach(() => Playlist
       .create({
         name: 'test',
-        owner: user1._id,
+        owner: user._id,
         podcasts: [podcast1._id],
       })
       .then(createdPlaylist => (playlist = createdPlaylist)));
@@ -98,7 +164,7 @@ describe('Playlists API', () => {
     beforeEach(() => Playlist
       .create({
         name: 'test',
-        owner: user1._id,
+        owner: user._id,
         podcasts: [podcast1._id],
       })
       .then(createdPlaylist => (playlist = createdPlaylist)));
@@ -115,7 +181,7 @@ describe('Playlists API', () => {
     beforeEach(() => Playlist
       .create({
         name: 'test',
-        owner: user1._id,
+        owner: user._id,
         podcasts: [podcast1._id],
       })
       .then(createdPlaylist => (playlist = createdPlaylist)));
@@ -136,7 +202,7 @@ describe('Playlists API', () => {
     beforeEach(() => Playlist
       .create({
         name: 'test',
-        owner: user1._id,
+        owner: user._id,
         podcasts: [podcast1._id],
       })
       .then(createdPlaylist => (playlist = createdPlaylist)));

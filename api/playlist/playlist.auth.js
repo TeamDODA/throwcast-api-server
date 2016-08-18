@@ -24,6 +24,7 @@ auth.isOwner = function isOwner(req, res, next) {
   return res.sendStatus(403);
 };
 
+// TODO: Remove isAuthenticated when all routes require authentication.
 auth.isPlaylistOwner = [isAuthenticated, auth.populateReqPlaylist, auth.isOwner];
 
 module.exports = auth;

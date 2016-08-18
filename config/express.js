@@ -6,9 +6,13 @@ const morgan = require('morgan');
 const environment = require('./environment');
 
 module.exports = function config(app) {
+  app.set('env', environment.env);
   app.set('port', environment.port);
   app.set('ip', environment.ip);
-  app.use(morgan('dev'));
+
+  if (app.get('env') !== 'test') {
+    app.use(morgan('dev'));
+  }
   app.use(helmet());
   app.use(cors());
   app.use(compression());
