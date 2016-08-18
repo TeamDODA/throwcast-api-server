@@ -111,27 +111,32 @@ describe('User API', () => {
   });
 
   describe('/api/users/subscriptions', () => {
-    let station;
-    let token;
-    const { username, password } = userCredentials[0];
-    beforeEach(() => User.create({ provider: 'local', username, password })
-      .then(() => Station.create({
-        title: 'station1',
-        link: 'http://station1.com',
-        description: 'fake station1',
-      }))
-      .then(created => (station = created))
-      .then(() => request(server)
-        .post('/auth/local')
-        .send({ username, password })
-        .then(res => (token = res.body.token))));
-
-    it('should start empty for a new user', () => request(server)
-      .get('/api/users/me')
-      .set('authorization', `Bearer ${token}`)
-      .then(res => res.body.subscriptions.should.have.length(0)));
-
     describe('POST', () => {
+      let station;
+      let token;
+      const { username, password } = userCredentials[0];
+      beforeEach(() => User.create({ provider: 'local', username, password })
+        .then(() => Station.create({
+          title: 'station1',
+          link: 'http://station1.com',
+          description: 'test station1',
+        }))
+        .then(created => (station = created))
+        .then(() => request(server)
+          .post('/auth/local')
+          .send({ username, password })
+          .then(res => (token = res.body.token))));
+
+      it('should start empty for a new user', () => request(server)
+        .get('/api/users/me')
+        .set('authorization', `Bearer ${token}`)
+        .then(res => res.body.subscriptions.should.have.length(0)));
+
+      it('should respond with 401 if not authenticated', () => request(server)
+        .post('/api/users/subscriptions')
+        .send({ stationId: station._id })
+        .expect(401));
+
       describe('with a valid request', () => {
         it('should respond with 200 and the added station', () => request(server)
           .post('/api/users/subscriptions')
@@ -148,6 +153,127 @@ describe('User API', () => {
           .post('/api/users/subscriptions')
           .set('authorization', `Bearer ${token}`)
           .send({ stationId: station._id })
+          .then(() => request(server)
+            .get('/api/users/me')
+            .set('authorization', `Bearer ${token}`)
+            .then(res => res.body.subscriptions.should.have.length(1))));
+      });
+
+      describe('with an invalid request', () => {
+        describe('-- missing stationId', () => {
+          it('should respond with 500', () => request(server)
+            .post('/api/users/subscriptions')
+            .set('authorization', `Bearer ${token}`)
+            .send({})
+            .expect(500));
+
+          it('should not add a station', () => request(server)
+            .post('/api/users/subscriptions')
+            .set('authorization', `Bearer ${token}`)
+            .send({})
+            .then(() => request(server)
+              .get('/api/users/me')
+              .set('authorization', `Bearer ${token}`)
+              .then(res => res.body.subscriptions.should.have.length(0))));
+        });
+
+        describe('-- invalid stationId', () => {
+          it('should respond with 500', () => request(server)
+            .post('/api/users/subscriptions')
+            .set('authorization', `Bearer ${token}`)
+            .send({ stationId: 'foo' })
+            .expect(500));
+
+          it('should not add a station', () => request(server)
+            .post('/api/users/subscriptions')
+            .set('authorization', `Bearer ${token}`)
+            .send({ stationId: 'foo' })
+            .then(() => request(server)
+              .get('/api/users/me')
+              .set('authorization', `Bearer ${token}`)
+              .then(res => res.body.subscriptions.should.have.length(0))));
+        });
+      });
+    });
+
+    describe('DELETE', () => {
+      let station1;
+      let station2;
+      let token;
+      let user;
+      const { username, password } = userCredentials[0];
+      beforeEach(() => Station
+        .create({
+          title: 'station1',
+          link: 'http://station1.com',
+          description: 'test station1',
+        })
+        .then(created => (station1 = created))
+        .then(() => Station.create({
+          title: 'station2',
+          link: 'http://station2.com',
+          description: 'test station2',
+        }))
+        .then(created => (station2 = created))
+        .then(() => User.create({
+          username,
+          password,
+          provider: 'local',
+          subscriptions: [station1._id],
+        }))
+        .then(created => (user = created))
+        .then(() => request(server)
+          .post('/auth/local')
+          .send({ username, password })
+          .then(res => (token = res.body.token))));
+
+      it('should have user with a single station subscribed', () => {
+        user.subscriptions.should.have.length(1);
+      });
+
+      it('should respond with 401 if not authenticated', () => request(server)
+        .delete(`/api/users/subscriptions/${station1.id}`)
+        .expect(401));
+
+      describe('with a subscribed station', () => {
+        it('should respond with 202', () => request(server)
+          .delete(`/api/users/subscriptions/${station1.id}`)
+          .set('authorization', `Bearer ${token}`)
+          .expect(202));
+
+        it('should remove the station from subscriptions', () => request(server)
+          .delete(`/api/users/subscriptions/${station1.id}`)
+          .set('authorization', `Bearer ${token}`)
+          .then(() => request(server)
+            .get('/api/users/me')
+            .set('authorization', `Bearer ${token}`)
+            .then(res => res.body.subscriptions.should.have.length(0))));
+      });
+
+      describe('with a stationId not in user subscriptions', () => {
+        it('should respond with 202', () => request(server)
+          .delete(`/api/users/subscriptions/${station2.id}`)
+          .set('authorization', `Bearer ${token}`)
+          .expect(202));
+
+        it('should not modify subscriptions', () => request(server)
+          .delete(`/api/users/subscriptions/${station2.id}`)
+          .set('authorization', `Bearer ${token}`)
+          .then(() => request(server)
+            .get('/api/users/me')
+            .set('authorization', `Bearer ${token}`)
+            .then(res => res.body.subscriptions.should.have.length(1))));
+      });
+
+      describe('with an invalid stationId', () => {
+        it('should respond with 500', () => request(server)
+          .delete('/api/users/subscriptions/foo')
+          .set('authorization', `Bearer ${token}`)
+          .expect(500));
+
+        it('should not modify subscriptions', () => request(server)
+          .delete('/api/users/subscriptions/foo')
+          .set('authorization', `Bearer ${token}`)
           .then(() => request(server)
             .get('/api/users/me')
             .set('authorization', `Bearer ${token}`)
