@@ -4,8 +4,17 @@ const Playlist = require('./playlist.model');
 const controller = {};
 
 controller.lists = (req, res) => {
-  Playlist.find({}).exec()
+  Playlist.find({})
+    .populate('podcasts')
+    .exec()
     .then(playlists => res.json({ data: playlists }))
+    .catch(handleError(res));
+};
+
+controller.create = (req, res) => {
+  const { name, podcast } = req.body;
+  Playlist.create({ name, owner: req.user._id, podcasts: [podcast].filter(Boolean) })
+    .then(playlist => res.json(playlist))
     .catch(handleError(res));
 };
 
@@ -13,13 +22,6 @@ controller.show = (req, res) => {
   const id = req.params.playlistId;
   Playlist.findById(id).exec()
     .then(playlist => res.json({ data: playlist }))
-    .catch(handleError(res));
-};
-
-controller.create = (req, res) => {
-  const { name, owner, podcast } = req.body;
-  Playlist.create({ name, owner, podcasts: [podcast] })
-    .then(playlist => res.json(playlist))
     .catch(handleError(res));
 };
 
