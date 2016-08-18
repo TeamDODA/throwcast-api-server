@@ -13,10 +13,13 @@ controller.lists = (req, res) => {
     .catch(u.handleError(res));
 };
 
-controller.create = (req, res) => {
-  const { name, podcast } = req.body;
-  Playlist.create({ name, owner: req.user._id, podcasts: [podcast].filter(Boolean) })
-    .then(playlist => res.json(playlist))
+controller.create = function create(req, res) {
+  const opts = [{ path: 'podcasts', model: 'Podcast' }];
+  const { name, podcasts } = req.body;
+  const owner = req.user._id;
+  Playlist.create({ name, owner, podcasts })
+    .then(created => Playlist.populate(created, opts))
+    .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };
 

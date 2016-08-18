@@ -68,43 +68,72 @@ describe('Playlists API', () => {
         .post('/api/playlists')
         .expect(401));
 
-      describe('with a podcast', () => {
-        it('should create playlist with the podcast in podcasts', () => agent
+      describe('valid request', () => {
+        it('should respond with 200 and created playlist', () => agent
           .post('/api/playlists/')
           .set('authorization', `Bearer ${token1}`)
-          .send({ name: 'test', podcast: podcast1._id })
+          .send({ name: 'test', podcasts: [] })
           .expect(200)
           .expect('Content-Type', /json/)
           .then(res => {
             res.body.should.have.property('_id');
             res.body.should.have.property('name', 'test');
             res.body.should.have.property('podcasts');
-            res.body.podcasts.should.have.length(1);
           }));
-      });
 
-      describe('with no podcast', () => {
-        it('should create playlist with an empty podcasts array', () => agent
-          .post('/api/playlists/')
-          .set('authorization', `Bearer ${token1}`)
-          .send({ name: 'test' })
-          .expect(200)
-          .expect('Content-Type', /json/)
-          .then(res => {
-            res.body.should.have.property('_id');
-            res.body.should.have.property('name', 'test');
-            res.body.should.have.property('podcasts');
-            res.body.podcasts.should.have.length(0);
-          }));
+        describe('with no podcasts', () => {
+          it('should create playlist with empty podcasts array', () => agent
+            .post('/api/playlists/')
+            .set('authorization', `Bearer ${token1}`)
+            .send({ name: 'test', podcasts: [] })
+            .then(res => res.body.podcasts.should.have.length(0)));
+
+          it('should create playlist with an empty podcasts array', () => agent
+            .post('/api/playlists/')
+            .set('authorization', `Bearer ${token1}`)
+            .send({ name: 'test' })
+            .then(res => res.body.podcasts.should.have.length(0)));
+        });
+
+        describe('with podcasts', () => {
+          it('should create playlist with podcasts array', () => agent
+            .post('/api/playlists/')
+            .set('authorization', `Bearer ${token1}`)
+            .send({ name: 'test', podcasts: [podcast1._id] })
+            .then(res => res.body.podcasts.should.have.length(1)));
+
+          it('should create playlist with podcasts array', () => agent
+            .post('/api/playlists/')
+            .set('authorization', `Bearer ${token1}`)
+            .send({ name: 'test', podcasts: [podcast1._id, podcast2._id] })
+            .then(res => res.body.podcasts.should.have.length(2)));
+
+          it('should populate the podcasts array', () => agent
+            .post('/api/playlists/')
+            .set('authorization', `Bearer ${token1}`)
+            .send({ name: 'test', podcasts: [podcast1._id, podcast2._id] })
+            .then(res => res.body.podcasts
+              .map(podcast => podcast.should.have.property('title'))));
+        });
       });
 
       describe('with invalid request', () => {
-        describe('-- podcastId is not an objectId', () => {
+        describe('-- podcasts is not an array', () => {
           it('should respond with 500', () => agent
             .post('/api/playlists/')
             .set('authorization', `Bearer ${token1}`)
-            .send({ name: 'test', podcast: 'foo' })
-            .expect(500));
+            .send({ name: 'test', podcasts: 'foo' })
+            .expect(500)
+            .then(() => Playlist.find({}).should.eventually.have.length(0)));
+        });
+
+        describe('-- podcasts has invalid podcastsIds in array', () => {
+          it('should respond with 500', () => agent
+            .post('/api/playlists/')
+            .set('authorization', `Bearer ${token1}`)
+            .send({ name: 'test', podcasts: ['foo'] })
+            .expect(500)
+            .then(() => Playlist.find({}).should.eventually.have.length(0)));
         });
 
         describe('-- name missing', () => {
@@ -112,7 +141,8 @@ describe('Playlists API', () => {
             .post('/api/playlists/')
             .set('authorization', `Bearer ${token1}`)
             .send({})
-            .expect(500));
+            .expect(500)
+            .then(() => Playlist.find({}).should.eventually.have.length(0)));
         });
       });
     });
