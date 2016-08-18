@@ -64,11 +64,13 @@ describe('Playlists API', () => {
 
   describe('/api/playlists', () => {
     describe('POST', () => {
-      it('should respond with 401 Not Authorized', () => agent
-        .post('/api/playlists')
-        .expect(401));
+      describe('requires user authentication', () => {
+        it('should respond with 401 Not Authorized', () => agent
+          .post('/api/playlists')
+          .expect(401));
+      });
 
-      describe('valid request', () => {
+      describe('with valid request', () => {
         it('should respond with 200 and created playlist', () => agent
           .post('/api/playlists/')
           .set('authorization', `Bearer ${token1}`)
@@ -88,7 +90,7 @@ describe('Playlists API', () => {
             .send({ name: 'test', podcasts: [] })
             .then(res => res.body.podcasts.should.have.length(0)));
 
-          it('should create playlist with an empty podcasts array', () => agent
+          it('should create playlist with empty podcasts array', () => agent
             .post('/api/playlists/')
             .set('authorization', `Bearer ${token1}`)
             .send({ name: 'test' })
@@ -160,21 +162,23 @@ describe('Playlists API', () => {
           podcasts: [podcast2._id],
         })));
 
-      it('should respond with 401 Not Authorized', () => agent
-        .get('/api/playlists')
-        .expect(401));
+      describe('requires user authentication', () => {
+        it('should respond with 401 Not Authorized', () => agent
+          .get('/api/playlists')
+          .expect(401));
+      });
 
       it('should send back list of all playlist', () => agent
         .get('/api/playlists/')
         .set('authorization', `Bearer ${token1}`)
         .expect(200)
         .expect('Content-Type', /json/)
-        .then(res => res.body.data.length.should.equal(2)));
+        .then(res => res.body.length.should.equal(2)));
 
       it('should populate podcasts in the playlists', () => agent
         .get('/api/playlists/')
         .set('authorization', `Bearer ${token1}`)
-        .then(res => res.body.data[0].podcasts.forEach(item => {
+        .then(res => res.body[0].podcasts.forEach(item => {
           item.should.have.property('_id');
           item.should.have.property('title');
           item.should.have.property('link');
@@ -248,6 +252,95 @@ describe('Playlists API', () => {
           .delete(`/api/playlists/${playlist2.id}`)
           .set('authorization', `Bearer ${token1}`)
           .expect(403));
+      });
+    });
+
+    describe('PUT', () => {
+      describe('requires user authentication', () => {
+        it('should respond with 401 Not Authorized', () => agent
+          .put(`/api/playlists/${playlist1.id}`)
+          .expect(401));
+      });
+
+      describe('requires user to be owner of playlist', () => {
+        it('should respond with 403 Forbidden', () => agent
+          .put(`/api/playlists/${playlist1.id}`)
+          .set('authorization', `Bearer ${token2}`)
+          .expect(403));
+      });
+
+      describe('updatable fields', () => {
+        describe('name', () => {
+          it('should change the playlist name', () => agent
+            .put(`/api/playlists/${playlist1.id}`)
+            .set('authorization', `Bearer ${token1}`)
+            .send(Object.assign(playlist1.toObject(), { name: 'new name' }))
+            .expect(200)
+            .then(res => res.body.name.should.equal('new name'))
+            .then(() => Playlist.findById(playlist1.id)
+              .should.eventually.have.property('name', 'new name')));
+
+          it('should not update if name is invalid', () => agent
+            .put(`/api/playlists/${playlist1.id}`)
+            .set('authorization', `Bearer ${token1}`)
+            .send(Object.assign(playlist1.toObject(), { name: '' }))
+            .expect(500));
+
+          it('should not update if name is invalid', () => agent
+            .put(`/api/playlists/${playlist1.id}`)
+            .set('authorization', `Bearer ${token1}`)
+            .send(Object.assign(playlist1.toObject(), { name: null }))
+            .expect(500));
+        });
+
+        describe('podcasts', () => {
+          it('should be removed by updates', () => agent
+            .put(`/api/playlists/${playlist1.id}`)
+            .set('authorization', `Bearer ${token1}`)
+            .send(Object.assign(playlist1.toObject(), { podcasts: [] }))
+            .expect(200)
+            .then(res => res.body.podcasts.should.have.length(0)));
+
+          it('should be added by updates', () => agent
+            .put(`/api/playlists/${playlist1.id}`)
+            .set('authorization', `Bearer ${token1}`)
+            .send(Object.assign(playlist1.toObject(),
+              { podcasts: [podcast1.id, podcast1.id, podcast2.id] }))
+            .expect(200)
+            .then(res => res.body.podcasts.should.have.length(3)));
+
+          it('should be reordered by updates', () => agent
+            .put(`/api/playlists/${playlist1.id}`)
+            .set('authorization', `Bearer ${token1}`)
+            .send(Object.assign(playlist1.toObject(),
+              { podcasts: [podcast2.id, podcast1.id] }))
+            .expect(200)
+            .then(res => {
+              res.body.podcasts.should.have.length(2);
+              res.body.podcasts[0].should.have.property('_id', podcast2.id);
+              res.body.podcasts[1].should.have.property('_id', podcast1.id);
+            }));
+        });
+      });
+
+      describe('non updatable fields', () => {
+        describe('_id', () => {
+          it('should not be updated', () => agent
+            .put(`/api/playlists/${playlist1.id}`)
+            .set('authorization', `Bearer ${token1}`)
+            .send(Object.assign(playlist1.toObject(), { _id: playlist1.id }))
+            .expect(200)
+            .then(res => res.body._id.should.be.equal(playlist1.id)));
+        });
+
+        describe('owner', () => {
+          it('should not be updated', () => agent
+            .put(`/api/playlists/${playlist1.id}`)
+            .set('authorization', `Bearer ${token1}`)
+            .send(Object.assign(playlist1.toObject(), { owner: user2.id }))
+            .expect(200)
+            .then(res => res.body.owner.should.be.equal(user1.id)));
+        });
       });
     });
   });

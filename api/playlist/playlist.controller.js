@@ -2,14 +2,12 @@ const u = require('../../utils');
 const Playlist = require('./playlist.model');
 const Podcast = require('../podcast/podcast.model');
 
-
 const controller = {};
 
-controller.lists = (req, res) => {
+controller.lists = function list(req, res) {
   Playlist.find({})
-    .populate('podcasts')
-    .exec()
-    .then(playlists => res.json({ data: playlists }))
+    .populate('podcasts').exec()
+    .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };
 
@@ -33,6 +31,16 @@ controller.show = (req, res) => {
 controller.delete = (req, res) => {
   Playlist.remove(req.playlist)
     .then(() => res.sendStatus(202))
+    .catch(u.handleError(res));
+};
+
+controller.update = function update(req, res) {
+  const sanitized = u.sanitizedUpdate(req.body, ['_id', 'owner']);
+  const opts = { upsert: true, setDefaultsOnInsert: true, runValidators: true, new: true };
+  Playlist
+    .findOneAndUpdate(req.playlist.id, sanitized, opts)
+    .populate('podcasts').exec()
+    .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };
 
