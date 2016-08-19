@@ -1,14 +1,11 @@
 const request = require('supertest-as-promised');
 
-const { cleanModels } = require('../../../utils/testing');
+const { cleanModels, entitiesToIds } = require('../../../utils/testing');
 const User = require('../user.model');
 const Station = require('../../station/station.model');
 const db = require('../../../db');
 
 const provider = 'local';
-const entitiesToIds = function entitiesToIds(entities) {
-  return entities.map(entity => entity._id);
-};
 
 describe('User#subscription API', () => {
   before(() => db.connect().then(cleanModels));

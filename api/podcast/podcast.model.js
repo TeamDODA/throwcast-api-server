@@ -8,7 +8,7 @@ const podcastSchema = new mongoose.Schema({
   description: { type: String, required: true },
   pubDate: { type: Date },
   imageUrl: { type: String },
-  station: { type: oid, required: true, ref: 'Station' },
+  station: { type: oid, required: true, ref: 'Station', index: true },
 }, {
   timestamps: true,
 });

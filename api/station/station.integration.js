@@ -1,6 +1,6 @@
 const request = require('supertest-as-promised');
 
-const { cleanModels } = require('../../utils/testing');
+const { cleanModels, entitiesToIds } = require('../../utils/testing');
 const Station = require('./station.model');
 const db = require('../../db');
 
@@ -9,6 +9,7 @@ describe('Station API', () => {
   after(() => cleanModels().then(() => db.connection.close()));
 
   let server;
+  let agent;
   beforeEach(() => Station
     .create([{
       title: 'station1',
@@ -22,14 +23,17 @@ describe('Station API', () => {
     .then(() => {
       const app = require('../../server', { bustCache: true });
       server = app.listen(app.get('port'), app.get('ip'));
+      agent = request(server);
     }));
   afterEach(done => server.close(done));
 
   describe('GET /', () => {
-    it('should return an array of all stations', () => request(server)
+    it('should return an array of all stations', () => agent
       .get('/api/stations')
       .expect(200)
       .expect('Content-Type', /json/)
-      .then(res => res.body.data.length.should.equal(2)));
+      .should.eventually.have.property('body')
+      .then(entitiesToIds)
+      .should.eventually.have.length(2));
   });
 });

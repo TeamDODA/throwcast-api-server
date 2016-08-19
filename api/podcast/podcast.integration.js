@@ -1,6 +1,6 @@
 const request = require('supertest-as-promised');
 
-const { cleanModels } = require('../../utils/testing');
+const { cleanModels, entitiesToIds } = require('../../utils/testing');
 const Podcast = require('./podcast.model');
 const Station = require('../station/station.model');
 const db = require('../../db');
@@ -10,6 +10,7 @@ describe('Podcast API', () => {
   after(() => cleanModels().then(() => db.connection.close()));
 
   let server;
+  let agent;
   let station1;
   let station2;
   let podcast1;
@@ -42,21 +43,23 @@ describe('Podcast API', () => {
     .then(() => {
       const app = require('../../server', { bustCache: true });
       server = app.listen(app.get('port'), app.get('ip'));
+      agent = request(server);
     }));
   afterEach(() => cleanModels().then(() => server.close()));
 
   describe('GET /', () => {
-    it('should respond with an array of all stations', () => request(server)
+    it('should respond with an array of all stations', () => agent
       .get('/api/podcasts')
       .expect(200)
       .expect('Content-Type', /json/)
-      .then(res => res.body.data.length.should.equal(2)));
+      .should.eventually.have.property('body')
+      .then(entitiesToIds)
+      .should.eventually.have.length(2));
 
-    it('should be sorted in descending createdAt order', () => request(server)
+    it('should be sorted in descending createdAt order', () => agent
       .get('/api/podcasts')
-      .then(res => {
-        res.body.data[0]._id.should.equal(podcast2.id);
-        res.body.data[1]._id.should.equal(podcast1.id);
-      }));
+      .should.eventually.have.property('body')
+      .then(entitiesToIds)
+      .should.eventually.be.eql([podcast2.id, podcast1.id]));
   });
 });
