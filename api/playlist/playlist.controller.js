@@ -12,9 +12,9 @@ controller.lists = function list(req, res) {
 
 controller.create = function create(req, res) {
   const opts = [{ path: 'podcasts', model: 'Podcast' }];
-  const { name, podcasts } = req.body;
-  const owner = req.user._id;
-  Playlist.create({ name, owner, podcasts })
+  const sanitized = u.sanitizedUpdate(req.body, ['_id', 'owner']);
+  sanitized.owner = req.user._id;
+  Playlist.create(sanitized)
     .then(created => Playlist.populate(created, opts))
     .then(u.respondWithResult(res))
     .catch(u.handleError(res));
@@ -34,8 +34,8 @@ controller.details = function details(req, res) {
 };
 
 controller.update = function update(req, res) {
-  const sanitized = u.sanitizedUpdate(req.body, ['_id', 'owner']);
   const opts = { upsert: true, setDefaultsOnInsert: true, runValidators: true, new: true };
+  const sanitized = u.sanitizedUpdate(req.body, ['_id', 'owner']);
   Playlist
     .findOneAndUpdate(req.playlist.id, sanitized, opts)
     .populate('podcasts').exec()
