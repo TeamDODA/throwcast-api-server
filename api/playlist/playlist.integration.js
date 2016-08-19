@@ -228,7 +228,7 @@ describe('Playlists API', () => {
           .set('authorization', `Bearer ${token1}`)
           .expect(200)
           .then(res => res.body._id.should.equal(playlist2.id)));
-      })
+      });
     });
 
     describe('DELETE', () => {

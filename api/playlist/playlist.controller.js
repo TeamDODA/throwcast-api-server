@@ -34,7 +34,7 @@ controller.details = function details(req, res) {
 };
 
 controller.update = function update(req, res) {
-  const opts = { upsert: true, setDefaultsOnInsert: true, runValidators: true, new: true };
+  const opts = { runValidators: true, new: true };
   const sanitized = u.sanitizedUpdate(req.body, ['_id', 'owner']);
   Playlist
     .findOneAndUpdate(req.playlist.id, sanitized, opts)

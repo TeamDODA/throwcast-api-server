@@ -2,6 +2,7 @@ const express = require('express');
 
 const { isAuthenticated } = require('../../auth/auth.service');
 const controller = require('./user.controller');
+const subscriptionRouter = require('./subscription');
 
 const users = express.Router();
 
@@ -13,21 +14,13 @@ const users = express.Router();
 users.post('/', controller.create);
 
 /**
- * /api/users/subscriptions
- *
- * POST: Add station to user's subscriptions
- * DELETE: Remove station from user's subscriptions
- * @requires isAuthenticated
- */
-users.post('/subscriptions', isAuthenticated, controller.subscribe);
-users.delete('/subscriptions/:stationId', isAuthenticated, controller.unsubscribe);
-
-/**
  * /api/users/me
  *
  * GET: Get authenticated user profile
  * @requires isAuthenticated
  */
 users.get('/me', isAuthenticated, controller.me);
+
+users.use('/subscriptions', subscriptionRouter);
 
 module.exports = users;
