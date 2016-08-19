@@ -5,7 +5,7 @@ const oid = mongoose.Schema.Types.ObjectId;
 const playlistSchema = new mongoose.Schema({
   name: { type: String, required: true },
   owner: { type: oid, required: true, ref: 'User' },
-  podcasts: [{ type: oid, ref: 'Podcast', unique: true }],
+  podcasts: [{ type: oid, ref: 'Podcast' }],
 }, {
   timestamps: true,
 });
