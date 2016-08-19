@@ -15,14 +15,17 @@ describe('User Controller', () => {
 
   let controller;
   let signToken;
-  let validationError;
-  let handleError;
+  let utilsStub;
   beforeEach(done => {
     signToken = sinon.stub().returns(token);
-    validationError = sinon.stub();
-    handleError = sinon.stub();
+    utilsStub = {
+      validationError: sinon.stub().returns(sinon.spy()),
+      handleError: sinon.stub().returns(sinon.spy()),
+      respondWithResult: sinon.stub().returns(sinon.spy()),
+    };
+
     controller = proxyquire('./user.controller', {
-      '../../utils': { validationError, handleError },
+      '../../utils': utilsStub,
       '../../auth/auth.service': { signToken },
     });
     done();
@@ -36,7 +39,7 @@ describe('User Controller', () => {
 
       it('should signToken and send response with token', () => controller.create(req, res)
         .then(() => signToken.should.be.calledOnce)
-        .then(() => res.json.should.be.calledWith({ token })));
+        .then(() => utilsStub.respondWithResult().should.be.calledWith({ token })));
     });
 
     describe('with invalid req.body', () => {
@@ -44,9 +47,8 @@ describe('User Controller', () => {
       const res = mockRes();
 
       it('should be rejected with ValidationError', () => controller.create(req, res)
-        .should.eventually.be.rejected
-        .and.have.property('name', 'ValidationError')
-        .then(() => signToken.should.not.be.called));
+        .then(() => signToken.should.not.be.called)
+        .then(() => utilsStub.validationError().should.be.calledOnce));
     });
   });
 });

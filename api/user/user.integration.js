@@ -161,11 +161,11 @@ describe('User API', () => {
 
       describe('with an invalid request', () => {
         describe('-- missing stationId', () => {
-          it('should respond with 500', () => request(server)
+          it('should respond with 404', () => request(server)
             .post('/api/users/subscriptions')
             .set('authorization', `Bearer ${token}`)
             .send({})
-            .expect(500));
+            .expect(404));
 
           it('should not add a station', () => request(server)
             .post('/api/users/subscriptions')
@@ -236,10 +236,10 @@ describe('User API', () => {
         .expect(401));
 
       describe('with a subscribed station', () => {
-        it('should respond with 202', () => request(server)
+        it('should respond with 204', () => request(server)
           .delete(`/api/users/subscriptions/${station1.id}`)
           .set('authorization', `Bearer ${token}`)
-          .expect(202));
+          .expect(204));
 
         it('should remove the station from subscriptions', () => request(server)
           .delete(`/api/users/subscriptions/${station1.id}`)
@@ -251,10 +251,10 @@ describe('User API', () => {
       });
 
       describe('with a stationId not in user subscriptions', () => {
-        it('should respond with 202', () => request(server)
+        it('should respond with 204', () => request(server)
           .delete(`/api/users/subscriptions/${station2.id}`)
           .set('authorization', `Bearer ${token}`)
-          .expect(202));
+          .expect(204));
 
         it('should not modify subscriptions', () => request(server)
           .delete(`/api/users/subscriptions/${station2.id}`)
