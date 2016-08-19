@@ -12,6 +12,7 @@ playlists.post('/', isAuthenticated, controller.create);
 
 playlists.get('/:playlistId', isAuthenticated, populateReqPlaylist, controller.show);
 playlists.delete('/:playlistId', isPlaylistOwner, controller.delete);
+playlists.put('/:playlistId', isPlaylistOwner, controller.update);
 
 playlists.post('/:playlistId/podcasts/', isPlaylistOwner, controller.addPodcast);
 playlists.delete('/:playlistId/podcasts/:podcastId', isPlaylistOwner, controller.removePodcast);

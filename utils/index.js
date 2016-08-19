@@ -69,3 +69,9 @@ module.exports.safeObjectIdCast = function safeObjectIdCast(idString) {
     }
   });
 };
+
+module.exports.sanitizedUpdate = function sanitizedUpdate(update, fields) {
+  const sanitized = Object.assign({}, update);
+  fields.forEach(field => delete sanitized[field]);
+  return sanitized;
+};
