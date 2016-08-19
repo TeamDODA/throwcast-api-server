@@ -20,16 +20,16 @@ controller.create = function create(req, res) {
     .catch(u.handleError(res));
 };
 
-controller.show = (req, res) => {
-  const opts = [{ path: 'podcasts', model: 'Podcast' }];
-  Playlist.populate(req.playlist, opts)
-    .then(playlist => res.json(playlist))
+controller.remove = function remove(req, res) {
+  req.playlist.remove()
+    .then(() => res.sendStatus(204))
     .catch(u.handleError(res));
 };
 
-controller.delete = (req, res) => {
-  Playlist.remove(req.playlist)
-    .then(() => res.sendStatus(202))
+controller.details = function details(req, res) {
+  const opts = [{ path: 'podcasts', model: 'Podcast' }];
+  Playlist.populate(req.playlist, opts)
+    .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };
 

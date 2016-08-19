@@ -1,5 +1,4 @@
 const { handleError, handleEntityNotFound, decorateRequest } = require('../../utils');
-const { isAuthenticated } = require('../../auth/auth.service');
 const Playlist = require('./playlist.model');
 
 const auth = {};
@@ -18,7 +17,6 @@ auth.isOwner = function isOwner(req, res, next) {
   return res.sendStatus(403);
 };
 
-// TODO: Remove isAuthenticated when all routes require authentication.
-auth.isPlaylistOwner = [isAuthenticated, auth.populateReqPlaylist, auth.isOwner];
+auth.isPlaylistOwner = [auth.populateReqPlaylist, auth.isOwner];
 
 module.exports = auth;

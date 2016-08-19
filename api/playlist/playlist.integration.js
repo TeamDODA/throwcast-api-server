@@ -168,23 +168,25 @@ describe('Playlists API', () => {
           .expect(401));
       });
 
-      it('should send back list of all playlist', () => agent
-        .get('/api/playlists/')
-        .set('authorization', `Bearer ${token1}`)
-        .expect(200)
-        .expect('Content-Type', /json/)
-        .then(res => res.body.length.should.equal(2)));
+      describe('with no query params', () => {
+        it('should send back list of all playlist', () => agent
+          .get('/api/playlists/')
+          .set('authorization', `Bearer ${token1}`)
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .then(res => res.body.length.should.equal(2)));
 
-      it('should populate podcasts in the playlists', () => agent
-        .get('/api/playlists/')
-        .set('authorization', `Bearer ${token1}`)
-        .then(res => res.body[0].podcasts.forEach(item => {
-          item.should.have.property('_id');
-          item.should.have.property('title');
-          item.should.have.property('link');
-          item.should.have.property('description');
-          item.should.have.property('station');
-        })));
+        it('should populate podcasts in the playlists', () => agent
+          .get('/api/playlists/')
+          .set('authorization', `Bearer ${token1}`)
+          .then(res => res.body[0].podcasts.forEach(item => {
+            item.should.have.property('_id');
+            item.should.have.property('title');
+            item.should.have.property('link');
+            item.should.have.property('description');
+            item.should.have.property('station');
+          })));
+      });
     });
   });
 
@@ -206,52 +208,55 @@ describe('Playlists API', () => {
       .then(created => (playlist2 = created)));
 
     describe('GET', () => {
-      it('should respond with 401 Not Authorized', () => agent
-        .get(`/api/playlists/${playlist1.id}`)
-        .expect(401));
+      describe('requires user authentication', () => {
+        it('should respond with 401 Not Authorized', () => agent
+          .get(`/api/playlists/${playlist1.id}`)
+          .expect(401));
+      });
 
-      it('should send back the requested playlist', () => agent
-        .get(`/api/playlists/${playlist1.id}`)
-        .set('authorization', `Bearer ${token1}`)
-        .expect(200)
-        .then(res => res.body._id.should.equal(playlist1.id)));
+      describe('for playlists owned by the user', () => {
+        it('should respond 200 and send the playlist', () => agent
+          .get(`/api/playlists/${playlist1.id}`)
+          .set('authorization', `Bearer ${token1}`)
+          .expect(200)
+          .then(res => res.body._id.should.equal(playlist1.id)));
+      });
 
-      it('should send back the requested playlist', () => agent
-        .get(`/api/playlists/${playlist2.id}`)
-        .set('authorization', `Bearer ${token1}`)
-        .expect(200)
-        .then(res => res.body._id.should.equal(playlist2.id)));
+      describe('for playlists not owned by the user', () => {
+        it('should respond 200 and send the playlist', () => agent
+          .get(`/api/playlists/${playlist2.id}`)
+          .set('authorization', `Bearer ${token1}`)
+          .expect(200)
+          .then(res => res.body._id.should.equal(playlist2.id)));
+      })
     });
 
     describe('DELETE', () => {
-      it('should respond with 401 Not Authorized', () => agent
-        .delete(`/api/playlists/${playlist1.id}`)
-        .expect(401));
-
-      describe('when the user is the owner of the playlist', () => {
-        it('should delete the requested playlist', () => agent
+      describe('requires user authentication', () => {
+        it('should respond with 401 Not Authorized', () => agent
           .delete(`/api/playlists/${playlist1.id}`)
-          .set('authorization', `Bearer ${token1}`)
-          .expect(202)
-          .then(() => Playlist.findById(playlist1._id).should.eventually.be.null));
-
-        it('should delete the requested playlist', () => agent
-          .delete(`/api/playlists/${playlist2.id}`)
-          .set('authorization', `Bearer ${token2}`)
-          .expect(202)
-          .then(() => Playlist.findById(playlist2._id).should.eventually.be.null));
+          .expect(401));
       });
 
-      describe('when the user is not the owner of the playlist', () => {
+      describe('requires user to be owner of playlist', () => {
         it('should respond with 403 Forbidden', () => agent
           .delete(`/api/playlists/${playlist1.id}`)
           .set('authorization', `Bearer ${token2}`)
           .expect(403));
+      });
 
-        it('should respond with 403 Forbidden', () => agent
-          .delete(`/api/playlists/${playlist2.id}`)
+      describe('for playlists owned by the user', () => {
+        it('should delete the playlist', () => agent
+          .delete(`/api/playlists/${playlist1.id}`)
           .set('authorization', `Bearer ${token1}`)
-          .expect(403));
+          .expect(204)
+          .then(() => Playlist.findById(playlist1._id).should.eventually.be.null));
+
+        it('should delete the playlist', () => agent
+          .delete(`/api/playlists/${playlist2.id}`)
+          .set('authorization', `Bearer ${token2}`)
+          .expect(204)
+          .then(() => Playlist.findById(playlist2._id).should.eventually.be.null));
       });
     });
 

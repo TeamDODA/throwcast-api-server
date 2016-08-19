@@ -1,8 +1,6 @@
-const mongoose = require('mongoose');
-const Promise = require('bluebird');
 const logger = require('winston');
 
-module.exports.handleError = (res, statusCode) => {
+module.exports.handleError = function handleError(res, statusCode) {
   const code = statusCode || 500;
   return err => {
     logger.error(err);
@@ -11,7 +9,7 @@ module.exports.handleError = (res, statusCode) => {
 };
 
 module.exports.handleEntityNotFound = function handleEntityNotFound(res) {
-  return function handler(entity) {
+  return entity => {
     if (!entity) {
       res.sendStatus(404);
       return null;
@@ -20,7 +18,7 @@ module.exports.handleEntityNotFound = function handleEntityNotFound(res) {
   };
 };
 
-module.exports.validationError = (res, statusCode) => {
+module.exports.validationError = function validationError(res, statusCode) {
   const code = statusCode || 422;
   return err => {
     logger.error(err.message);
@@ -41,7 +39,7 @@ module.exports.decorateRequest = function decorateRequest(req, name, next) {
   if (!name) {
     throw Error('decorateRequest requires name argument');
   }
-  return function handler(entity) {
+  return entity => {
     if (entity) {
       req[name] = entity; // eslint-disable-line no-param-reassign
       return next();
@@ -52,7 +50,7 @@ module.exports.decorateRequest = function decorateRequest(req, name, next) {
 
 module.exports.respondWithResult = function respondWithResult(res, statusCode) {
   const code = statusCode || 200;
-  return function handle(entity) {
+  return entity => {
     if (entity) {
       return res.status(code).json(entity);
     }
