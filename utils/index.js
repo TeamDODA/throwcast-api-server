@@ -60,16 +60,6 @@ module.exports.respondWithResult = function respondWithResult(res, statusCode) {
   };
 };
 
-module.exports.safeObjectIdCast = function safeObjectIdCast(idString) {
-  return new Promise((resolve, reject) => {
-    try {
-      resolve(new mongoose.Types.ObjectId(idString));
-    } catch (err) {
-      reject(err);
-    }
-  });
-};
-
 module.exports.sanitizedUpdate = function sanitizedUpdate(update, fields) {
   const sanitized = Object.assign({}, update);
   fields.forEach(field => delete sanitized[field]);
