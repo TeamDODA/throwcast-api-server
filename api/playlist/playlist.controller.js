@@ -5,7 +5,7 @@ const controller = {};
 
 controller.lists = function list(req, res) {
   Playlist.find({})
-    .populate('podcasts').exec()
+    .populate('podcasts')
     .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };
@@ -37,8 +37,8 @@ controller.update = function update(req, res) {
   const opts = { runValidators: true, new: true };
   const sanitized = u.sanitizedUpdate(req.body, ['_id', 'owner', 'createdAt', 'updatedAt']);
   Playlist
-    .findOneAndUpdate(req.playlist.id, { $set: sanitized }, opts)
-    .populate('podcasts').exec()
+    .findByIdAndUpdate(req.playlist.id, { $set: sanitized }, opts)
+    .populate('podcasts')
     .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };
