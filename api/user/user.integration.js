@@ -15,7 +15,9 @@ describe('User API', () => {
   let server;
   let agent;
   beforeEach(done => {
-    const app = require('../../server', { bustCache: true });
+    delete require.cache[require.resolve('../../server')];
+    const app = require('../../server');
+
     server = app.listen(app.get('port'), app.get('ip'));
     agent = request(server);
     done();
@@ -30,13 +32,14 @@ describe('User API', () => {
           .send(userCredentials[0])
           .expect(200)
           .then(() => User.find({ username: userCredentials[0].username }))
-          .then(foundUser => foundUser.should.exist));
+          .should.eventually.be.fulfilled);
 
         it('should send status 200 response with signed token', () => agent
           .post('/api/users')
           .send(userCredentials[0])
           .expect(200)
-          .then(res => res.body.should.have.property('token')));
+          .should.eventually.have.property('body')
+          .and.have.property('token'));
 
         it('should be able to sign in with created user', () => agent
           .post('/api/users')
@@ -45,9 +48,8 @@ describe('User API', () => {
           .then(() => agent
             .post('/auth/local')
             .send(userCredentials[1])
-            .expect(200)
-            .expect('Content-Type', /json/)
-            .then(res => res.body.should.have.property('token'))));
+            .should.eventually.have.property('body')
+            .and.have.property('token')));
       });
 
       describe('with invalid credentials', () => {

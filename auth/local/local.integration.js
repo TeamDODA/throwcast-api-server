@@ -20,7 +20,9 @@ const userCredentials = [{
 describe('Local auth', () => {
   let server;
   beforeEach(() => {
-    const app = require('../../server', { bustCache: true });
+    delete require.cache[require.resolve('../../server')];
+    const app = require('../../server');
+
     server = app.listen(app.get('port'), app.get('ip'));
     return User.create(userCredentials.slice(0, 2));
   });
