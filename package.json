@@ -36,7 +36,6 @@
     "mocha": "^3.0.2",
     "nodemon": "^1.10.0",
     "proxyquire": "^1.7.10",
-    "really-need": "^1.9.2",
     "sinon": "^1.17.5",
     "sinon-chai": "^2.8.0",
     "sinon-express-mock": "^1.2.4",

@@ -1,65 +1,28 @@
 const request = require('supertest-as-promised');
 
-require('../../utils/testing');
-const Podcast = require('../podcast/podcast.model');
-const Station = require('../station/station.model');
-const User = require('../user/user.model');
+const tu = require('../../utils/testing');
 const Playlist = require('./playlist.model');
 
-const provider = 'local';
-
 describe('Playlists API', () => {
-  let server;
-  let station1;
-  let podcast1;
-  let podcast2;
-  let token1;
-  let token2;
-  let user1;
-  let user2;
   let agent;
-  beforeEach(() => Station
-    .create({
-      title: 'station1',
-      link: 'http://station1.com',
-      description: 'fake station1',
-    })
-    .then(created => (station1 = created))
-    .then(() => Podcast.create([{
-      title: 'station1 podcast1',
-      link: 'https://station1.com/podcast1',
-      description: 'station1 podcast1',
-      station: station1._id,
-    }, {
-      title: 'station2 podcast1',
-      link: 'https://station2.com/podcast1',
-      description: 'station2 podcast1',
-      station: station1._id,
-    }]))
-    .then(created => ([podcast1, podcast2] = created))
-    .then(() => User.create([{
-      username: 'username1',
-      password: 'password1',
-      provider,
-    }, {
-      username: 'username2',
-      password: 'password2',
-      provider,
-    }]))
-    .then(created => ([user1, user2] = created))
+  let podcasts;
+  let server;
+  let tokens;
+  let users;
+  beforeEach(() => tu.createStations(2)
+    .then(tu.podcastsForStations)
+    .then(created => (podcasts = created))
+    .then(() => tu.createUsers(2))
+    .then(created => (users = created))
     .then(() => {
-      const app = require('../../server', { bustCache: true });
+      delete require.cache[require.resolve('../../server')];
+      const app = require('../../server');
+
       server = app.listen(app.get('port'), app.get('ip'));
       return (agent = request(app));
     })
-    .then(() => agent
-      .post('/auth/local')
-      .send({ username: 'username1', password: 'password1', provider })
-      .then(res => (token1 = res.body.token)))
-    .then(() => agent
-      .post('/auth/local')
-      .send({ username: 'username2', password: 'password2', provider })
-      .then(res => (token2 = res.body.token))));
+    .then(() => tu.tokensForUsers(users, agent))
+    .then(created => (tokens = created)));
   afterEach(() => server.close());
 
   describe('/api/playlists', () => {
@@ -73,7 +36,7 @@ describe('Playlists API', () => {
       describe('with valid request', () => {
         it('should respond with 200 and created playlist', () => agent
           .post('/api/playlists/')
-          .set('authorization', `Bearer ${token1}`)
+          .set('authorization', `Bearer ${tokens[0]}`)
           .send({ title: 'test', podcasts: [] })
           .expect(200)
           .expect('Content-Type', /json/)
@@ -86,13 +49,13 @@ describe('Playlists API', () => {
         describe('with no podcasts', () => {
           it('should create playlist with empty podcasts array', () => agent
             .post('/api/playlists/')
-            .set('authorization', `Bearer ${token1}`)
+            .set('authorization', `Bearer ${tokens[0]}`)
             .send({ title: 'test', podcasts: [] })
             .then(res => res.body.podcasts.should.have.length(0)));
 
           it('should create playlist with empty podcasts array', () => agent
             .post('/api/playlists/')
-            .set('authorization', `Bearer ${token1}`)
+            .set('authorization', `Bearer ${tokens[0]}`)
             .send({ title: 'test' })
             .then(res => res.body.podcasts.should.have.length(0)));
         });
@@ -100,20 +63,20 @@ describe('Playlists API', () => {
         describe('with podcasts', () => {
           it('should create playlist with podcasts array', () => agent
             .post('/api/playlists/')
-            .set('authorization', `Bearer ${token1}`)
-            .send({ title: 'test', podcasts: [podcast1._id] })
+            .set('authorization', `Bearer ${tokens[0]}`)
+            .send({ title: 'test', podcasts: [podcasts[0]._id] })
             .then(res => res.body.podcasts.should.have.length(1)));
 
           it('should create playlist with podcasts array', () => agent
             .post('/api/playlists/')
-            .set('authorization', `Bearer ${token1}`)
-            .send({ title: 'test', podcasts: [podcast1._id, podcast2._id] })
+            .set('authorization', `Bearer ${tokens[0]}`)
+            .send({ title: 'test', podcasts: [podcasts[0]._id, podcasts[1]._id] })
             .then(res => res.body.podcasts.should.have.length(2)));
 
           it('should populate the podcasts array', () => agent
             .post('/api/playlists/')
-            .set('authorization', `Bearer ${token1}`)
-            .send({ title: 'test', podcasts: [podcast1._id, podcast2._id] })
+            .set('authorization', `Bearer ${tokens[0]}`)
+            .send({ title: 'test', podcasts: [podcasts[0]._id, podcasts[1]._id] })
             .then(res => res.body.podcasts
               .map(podcast => podcast.should.have.property('title'))));
         });
@@ -123,7 +86,7 @@ describe('Playlists API', () => {
         describe('-- podcasts is not an array', () => {
           it('should respond with 500', () => agent
             .post('/api/playlists/')
-            .set('authorization', `Bearer ${token1}`)
+            .set('authorization', `Bearer ${tokens[0]}`)
             .send({ title: 'test', podcasts: 'foo' })
             .expect(500)
             .then(() => Playlist.find({}).should.eventually.have.length(0)));
@@ -132,7 +95,7 @@ describe('Playlists API', () => {
         describe('-- podcasts has invalid podcastsIds in array', () => {
           it('should respond with 500', () => agent
             .post('/api/playlists/')
-            .set('authorization', `Bearer ${token1}`)
+            .set('authorization', `Bearer ${tokens[0]}`)
             .send({ title: 'test', podcasts: ['foo'] })
             .expect(500)
             .then(() => Playlist.find({}).should.eventually.have.length(0)));
@@ -141,7 +104,7 @@ describe('Playlists API', () => {
         describe('-- title missing', () => {
           it('should respond with 500', () => agent
             .post('/api/playlists/')
-            .set('authorization', `Bearer ${token1}`)
+            .set('authorization', `Bearer ${tokens[0]}`)
             .send({})
             .expect(500)
             .then(() => Playlist.find({}).should.eventually.have.length(0)));
@@ -153,13 +116,13 @@ describe('Playlists API', () => {
       beforeEach(() => Playlist
         .create({
           title: 'test playlist1',
-          owner: user1._id,
-          podcasts: [podcast1._id, podcast2._id],
+          owner: users[0]._id,
+          podcasts: [podcasts[0]._id, podcasts[1]._id],
         })
         .then(() => Playlist.create({
           title: 'test playlist2',
-          owner: user2._id,
-          podcasts: [podcast2._id],
+          owner: users[1]._id,
+          podcasts: [podcasts[1]._id],
         })));
 
       describe('requires user authentication', () => {
@@ -171,14 +134,14 @@ describe('Playlists API', () => {
       describe('with no query params', () => {
         it('should send back list of all playlist', () => agent
           .get('/api/playlists/')
-          .set('authorization', `Bearer ${token1}`)
+          .set('authorization', `Bearer ${tokens[0]}`)
           .expect(200)
           .expect('Content-Type', /json/)
           .then(res => res.body.length.should.equal(2)));
 
         it('should populate podcasts in the playlists', () => agent
           .get('/api/playlists/')
-          .set('authorization', `Bearer ${token1}`)
+          .set('authorization', `Bearer ${tokens[0]}`)
           .then(res => res.body[0].podcasts.forEach(item => {
             item.should.have.property('_id');
             item.should.have.property('title');
@@ -196,14 +159,14 @@ describe('Playlists API', () => {
     beforeEach(() => Playlist
       .create({
         title: 'test playlist1',
-        owner: user1._id,
-        podcasts: [podcast1._id, podcast2._id],
+        owner: users[0]._id,
+        podcasts: [podcasts[0]._id, podcasts[1]._id],
       })
       .then(created => (playlist1 = created))
       .then(() => Playlist.create({
         title: 'test playlist2',
-        owner: user2._id,
-        podcasts: [podcast2._id],
+        owner: users[1]._id,
+        podcasts: [podcasts[1]._id],
       }))
       .then(created => (playlist2 = created)));
 
@@ -217,7 +180,7 @@ describe('Playlists API', () => {
       describe('for playlists owned by the user', () => {
         it('should respond 200 and send the playlist', () => agent
           .get(`/api/playlists/${playlist1.id}`)
-          .set('authorization', `Bearer ${token1}`)
+          .set('authorization', `Bearer ${tokens[0]}`)
           .expect(200)
           .then(res => res.body._id.should.equal(playlist1.id)));
       });
@@ -225,7 +188,7 @@ describe('Playlists API', () => {
       describe('for playlists not owned by the user', () => {
         it('should respond 200 and send the playlist', () => agent
           .get(`/api/playlists/${playlist2.id}`)
-          .set('authorization', `Bearer ${token1}`)
+          .set('authorization', `Bearer ${tokens[0]}`)
           .expect(200)
           .then(res => res.body._id.should.equal(playlist2.id)));
       });
@@ -241,20 +204,20 @@ describe('Playlists API', () => {
       describe('requires user to be owner of playlist', () => {
         it('should respond with 403 Forbidden', () => agent
           .delete(`/api/playlists/${playlist1.id}`)
-          .set('authorization', `Bearer ${token2}`)
+          .set('authorization', `Bearer ${tokens[1]}`)
           .expect(403));
       });
 
       describe('for playlists owned by the user', () => {
         it('should delete the playlist', () => agent
           .delete(`/api/playlists/${playlist1.id}`)
-          .set('authorization', `Bearer ${token1}`)
+          .set('authorization', `Bearer ${tokens[0]}`)
           .expect(204)
           .then(() => Playlist.findById(playlist1._id).should.eventually.be.null));
 
         it('should delete the playlist', () => agent
           .delete(`/api/playlists/${playlist2.id}`)
-          .set('authorization', `Bearer ${token2}`)
+          .set('authorization', `Bearer ${tokens[1]}`)
           .expect(204)
           .then(() => Playlist.findById(playlist2._id).should.eventually.be.null));
       });
@@ -270,7 +233,7 @@ describe('Playlists API', () => {
       describe('requires user to be owner of playlist', () => {
         it('should respond with 403 Forbidden', () => agent
           .put(`/api/playlists/${playlist1.id}`)
-          .set('authorization', `Bearer ${token2}`)
+          .set('authorization', `Bearer ${tokens[1]}`)
           .expect(403));
       });
 
@@ -278,7 +241,7 @@ describe('Playlists API', () => {
         describe('title', () => {
           it('should change the playlist title', () => agent
             .put(`/api/playlists/${playlist1.id}`)
-            .set('authorization', `Bearer ${token1}`)
+            .set('authorization', `Bearer ${tokens[0]}`)
             .send(Object.assign(playlist1.toObject(), { title: 'new title' }))
             .expect(200)
             .then(res => res.body.title.should.equal('new title'))
@@ -287,13 +250,13 @@ describe('Playlists API', () => {
 
           it('should not update if title is invalid', () => agent
             .put(`/api/playlists/${playlist1.id}`)
-            .set('authorization', `Bearer ${token1}`)
+            .set('authorization', `Bearer ${tokens[0]}`)
             .send(Object.assign(playlist1.toObject(), { title: '' }))
             .expect(500));
 
           it('should not update if title is invalid', () => agent
             .put(`/api/playlists/${playlist1.id}`)
-            .set('authorization', `Bearer ${token1}`)
+            .set('authorization', `Bearer ${tokens[0]}`)
             .send(Object.assign(playlist1.toObject(), { title: null }))
             .expect(500));
         });
@@ -301,29 +264,29 @@ describe('Playlists API', () => {
         describe('podcasts', () => {
           it('should be removed by updates', () => agent
             .put(`/api/playlists/${playlist1.id}`)
-            .set('authorization', `Bearer ${token1}`)
+            .set('authorization', `Bearer ${tokens[0]}`)
             .send(Object.assign(playlist1.toObject(), { podcasts: [] }))
             .expect(200)
             .then(res => res.body.podcasts.should.have.length(0)));
 
           it('should be added by updates', () => agent
             .put(`/api/playlists/${playlist1.id}`)
-            .set('authorization', `Bearer ${token1}`)
+            .set('authorization', `Bearer ${tokens[0]}`)
             .send(Object.assign(playlist1.toObject(),
-              { podcasts: [podcast1.id, podcast1.id, podcast2.id] }))
+              { podcasts: [podcasts[0].id, podcasts[0].id, podcasts[1].id] }))
             .expect(200)
             .then(res => res.body.podcasts.should.have.length(3)));
 
           it('should be reordered by updates', () => agent
             .put(`/api/playlists/${playlist1.id}`)
-            .set('authorization', `Bearer ${token1}`)
+            .set('authorization', `Bearer ${tokens[0]}`)
             .send(Object.assign(playlist1.toObject(),
-              { podcasts: [podcast2.id, podcast1.id] }))
+              { podcasts: [podcasts[1].id, podcasts[0].id] }))
             .expect(200)
             .then(res => {
               res.body.podcasts.should.have.length(2);
-              res.body.podcasts[0].should.have.property('_id', podcast2.id);
-              res.body.podcasts[1].should.have.property('_id', podcast1.id);
+              res.body.podcasts[0].should.have.property('_id', podcasts[1].id);
+              res.body.podcasts[1].should.have.property('_id', podcasts[0].id);
             }));
         });
       });
@@ -332,7 +295,7 @@ describe('Playlists API', () => {
         describe('_id', () => {
           it('should not be updated', () => agent
             .put(`/api/playlists/${playlist1.id}`)
-            .set('authorization', `Bearer ${token1}`)
+            .set('authorization', `Bearer ${tokens[0]}`)
             .send(Object.assign(playlist1.toObject(), { _id: playlist1.id }))
             .expect(200)
             .then(res => res.body._id.should.be.equal(playlist1.id)));
@@ -341,10 +304,10 @@ describe('Playlists API', () => {
         describe('owner', () => {
           it('should not be updated', () => agent
             .put(`/api/playlists/${playlist1.id}`)
-            .set('authorization', `Bearer ${token1}`)
-            .send(Object.assign(playlist1.toObject(), { owner: user2.id }))
+            .set('authorization', `Bearer ${tokens[0]}`)
+            .send(Object.assign(playlist1.toObject(), { owner: users[1].id }))
             .expect(200)
-            .then(res => res.body.owner.should.be.equal(user1.id)));
+            .then(res => res.body.owner.should.be.equal(users[0].id)));
         });
       });
     });

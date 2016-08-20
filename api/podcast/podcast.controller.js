@@ -4,7 +4,8 @@ const Podcast = require('./podcast.model');
 const controller = {};
 
 controller.list = (req, res) => {
-  Podcast.find({}).sort('-createdAt').exec()
+  Podcast.find({})
+    .sort({ link: 1 })
     .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };
