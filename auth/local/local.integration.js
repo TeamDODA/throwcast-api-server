@@ -1,8 +1,7 @@
 const request = require('supertest-as-promised');
 
-const { cleanModels } = require('../../utils/testing');
+require('../../utils/testing');
 const User = require('../../api/user/user.model');
-const db = require('../../db');
 
 const userCredentials = [{
   username: 'username1',
@@ -19,16 +18,13 @@ const userCredentials = [{
 }];
 
 describe('Local auth', () => {
-  before(() => db.connect().then(cleanModels));
-  after(() => cleanModels().then(() => db.connection.close()));
-
   let server;
   beforeEach(() => {
     const app = require('../../server', { bustCache: true });
     server = app.listen(app.get('port'), app.get('ip'));
     return User.create(userCredentials.slice(0, 2));
   });
-  afterEach(() => cleanModels().then(() => server.close()));
+  afterEach(() => server.close());
 
   describe('POST /auth/local', () => {
     it('should send status 200 response with signed token', () => request(server)

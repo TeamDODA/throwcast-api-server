@@ -1,18 +1,14 @@
 const request = require('supertest-as-promised');
 
-const { cleanModels } = require('../../utils/testing');
+require('../../utils/testing');
 const Podcast = require('../podcast/podcast.model');
 const Station = require('../station/station.model');
 const User = require('../user/user.model');
 const Playlist = require('./playlist.model');
-const db = require('../../db');
 
 const provider = 'local';
 
 describe('Playlists API', () => {
-  before(() => db.connect().then(cleanModels));
-  after(() => cleanModels().then(() => db.connection.close()));
-
   let server;
   let station1;
   let podcast1;
@@ -29,24 +25,28 @@ describe('Playlists API', () => {
       description: 'fake station1',
     })
     .then(created => (station1 = created))
-    .then(() => Podcast.create({
+    .then(() => Podcast.create([{
       title: 'station1 podcast1',
       link: 'https://station1.com/podcast1',
       description: 'station1 podcast1',
       station: station1._id,
-    }))
-    .then(created => (podcast1 = created))
-    .then(() => Podcast.create({
+    }, {
       title: 'station2 podcast1',
       link: 'https://station2.com/podcast1',
       description: 'station2 podcast1',
       station: station1._id,
-    }))
-    .then(created => (podcast2 = created))
-    .then(() => User.create({ username: 'username1', password: 'password1', provider }))
-    .then(created => (user1 = created))
-    .then(() => User.create({ username: 'username2', password: 'password2', provider }))
-    .then(created => (user2 = created))
+    }]))
+    .then(created => ([podcast1, podcast2] = created))
+    .then(() => User.create([{
+      username: 'username1',
+      password: 'password1',
+      provider,
+    }, {
+      username: 'username2',
+      password: 'password2',
+      provider,
+    }]))
+    .then(created => ([user1, user2] = created))
     .then(() => {
       const app = require('../../server', { bustCache: true });
       server = app.listen(app.get('port'), app.get('ip'));
@@ -60,7 +60,7 @@ describe('Playlists API', () => {
       .post('/auth/local')
       .send({ username: 'username2', password: 'password2', provider })
       .then(res => (token2 = res.body.token))));
-  afterEach(() => cleanModels().then(() => server.close()));
+  afterEach(() => server.close());
 
   describe('/api/playlists', () => {
     describe('POST', () => {

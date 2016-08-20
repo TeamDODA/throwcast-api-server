@@ -1,6 +1,5 @@
-const { cleanModels } = require('../../utils/testing');
+require('../../utils/testing');
 const Station = require('./station.model');
-const db = require('../../db');
 
 const title = 'fake station';
 const link = 'https://fake.station.com';
@@ -8,12 +7,8 @@ const description = 'Some description goes here.';
 const imageUrl = 'https://some.where.com/image.png';
 
 describe('Station Model', () => {
-  before(() => db.connect().then(cleanModels));
-  after(() => cleanModels().then(() => db.connection.close()));
-
-  afterEach(() => cleanModels());
-
-  it('should start with no stations', () => Station.find().should.eventually.have.length(0));
+  it('should start with no stations', () => Station.find({})
+    .should.eventually.have.length(0));
 
   describe('#create', () => {
     describe('when given a valid record', () => {
