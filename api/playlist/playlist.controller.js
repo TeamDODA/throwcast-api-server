@@ -35,9 +35,9 @@ controller.details = function details(req, res) {
 
 controller.update = function update(req, res) {
   const opts = { runValidators: true, new: true };
-  const sanitized = u.sanitizedUpdate(req.body, ['_id', 'owner']);
+  const sanitized = u.sanitizedUpdate(req.body, ['_id', 'owner', 'createdAt', 'updatedAt']);
   Playlist
-    .findOneAndUpdate(req.playlist.id, sanitized, opts)
+    .findOneAndUpdate(req.playlist.id, { $set: sanitized }, opts)
     .populate('podcasts').exec()
     .then(u.respondWithResult(res))
     .catch(u.handleError(res));
