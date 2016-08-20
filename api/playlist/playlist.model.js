@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const oid = mongoose.Schema.Types.ObjectId;
 
 const playlistSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  title: { type: String, required: true },
   owner: { type: oid, required: true, ref: 'User' },
   podcasts: [{ type: oid, ref: 'Podcast' }],
 }, {
