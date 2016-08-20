@@ -51,13 +51,17 @@ describe('Playlists API', () => {
             .post('/api/playlists/')
             .set('authorization', `Bearer ${tokens[0]}`)
             .send({ title: 'test', podcasts: [] })
-            .then(res => res.body.podcasts.should.have.length(0)));
+            .should.eventually.have.property('body')
+            .and.have.property('podcasts')
+            .and.have.length(0));
 
           it('should create playlist with empty podcasts array', () => agent
             .post('/api/playlists/')
             .set('authorization', `Bearer ${tokens[0]}`)
             .send({ title: 'test' })
-            .then(res => res.body.podcasts.should.have.length(0)));
+            .should.eventually.have.property('body')
+            .and.have.property('podcasts')
+            .and.have.length(0));
         });
 
         describe('with podcasts', () => {
@@ -65,20 +69,25 @@ describe('Playlists API', () => {
             .post('/api/playlists/')
             .set('authorization', `Bearer ${tokens[0]}`)
             .send({ title: 'test', podcasts: [podcasts[0]._id] })
-            .then(res => res.body.podcasts.should.have.length(1)));
+            .should.eventually.have.property('body')
+            .and.have.property('podcasts')
+            .and.have.length(1));
 
           it('should create playlist with podcasts array', () => agent
             .post('/api/playlists/')
             .set('authorization', `Bearer ${tokens[0]}`)
             .send({ title: 'test', podcasts: [podcasts[0]._id, podcasts[1]._id] })
-            .then(res => res.body.podcasts.should.have.length(2)));
+            .should.eventually.have.property('body')
+            .and.have.property('podcasts')
+            .and.have.length(2));
 
           it('should populate the podcasts array', () => agent
             .post('/api/playlists/')
             .set('authorization', `Bearer ${tokens[0]}`)
             .send({ title: 'test', podcasts: [podcasts[0]._id, podcasts[1]._id] })
-            .then(res => res.body.podcasts
-              .map(podcast => podcast.should.have.property('title'))));
+            .should.eventually.have.property('body')
+            .and.have.property('podcasts')
+            .then(podcasts => podcasts.map(podcast => podcast.should.have.property('title'))));
         });
       });
 
