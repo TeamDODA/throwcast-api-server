@@ -34,7 +34,7 @@ describe('Playlist Auth', () => {
     }))
     .then(created => (podcast = created))
     .then(() => Playlist.create({
-      name: 'Awesome playlist',
+      title: 'Awesome playlist',
       owner: user._id,
       podcasts: [podcast._id],
     }))
@@ -63,7 +63,7 @@ describe('Playlist Auth', () => {
         .populateReqPlaylist(req, res, next)
         .then(() => {
           req.playlist.should.have.property('_id');
-          req.playlist.should.have.property('name', 'Awesome playlist');
+          req.playlist.should.have.property('title', 'Awesome playlist');
           req.playlist.should.have.property('podcasts');
           req.playlist.podcasts.should.contain(podcast._id);
           next.should.have.been.calledWith();

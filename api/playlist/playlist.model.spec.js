@@ -2,7 +2,7 @@ require('../../utils/testing');
 const Playlist = require('./playlist.model');
 
 const user = {
-  name: 'test',
+  title: 'test',
   owner: 'test',
 };
 
