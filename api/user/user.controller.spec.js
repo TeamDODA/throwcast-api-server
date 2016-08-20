@@ -1,7 +1,7 @@
-const { cleanModels } = require('../../utils/testing');
-const db = require('../../db');
 const proxyquire = require('proxyquire');
 const { mockReq, mockRes } = require('sinon-express-mock');
+
+require('../../utils/testing');
 
 const token = 'SOME_TOKEN';
 const userRecord = {
@@ -10,9 +10,6 @@ const userRecord = {
 };
 
 describe('User Controller', () => {
-  before(() => db.connect().then(cleanModels));
-  after(() => db.connection.close());
-
   let controller;
   let signToken;
   let utilsStub;
@@ -30,7 +27,6 @@ describe('User Controller', () => {
     });
     done();
   });
-  afterEach(() => cleanModels());
 
   describe('#create', () => {
     describe('with valid req.body', () => {

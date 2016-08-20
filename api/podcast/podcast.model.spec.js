@@ -1,7 +1,6 @@
-const { cleanModels } = require('../../utils/testing');
+require('../../utils/testing');
 const Podcast = require('./podcast.model');
 const Station = require('../station/station.model');
-const db = require('../../db');
 
 const title = 'fake podcast episode 1';
 const link = 'https://fake.station.com/podcast1';
@@ -9,9 +8,6 @@ const description = 'Some description goes here.';
 const imageUrl = 'https://some.where.com/optional-image.png';
 
 describe('Podcast Model', () => {
-  before(() => db.connect().then(cleanModels));
-  after(() => cleanModels().then(() => db.connection.close()));
-
   let station1;
   let station2;
   beforeEach(() => Station
@@ -25,7 +21,6 @@ describe('Podcast Model', () => {
       description: 'fake station2',
     }])
     .then(created => ([station1, station2] = created)));
-  afterEach(cleanModels);
 
   it('should start with no podcasts', () => Podcast.find().should.eventually.have.length(0));
 

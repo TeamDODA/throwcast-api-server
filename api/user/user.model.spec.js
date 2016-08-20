@@ -1,6 +1,5 @@
-const { cleanModels } = require('../../utils/testing');
+require('../../utils/testing');
 const User = require('./user.model');
-const db = require('../../db');
 
 const userRecord = {
   username: 'username1',
@@ -8,12 +7,8 @@ const userRecord = {
 };
 
 describe('User Model', () => {
-  before(() => db.connect().then(cleanModels));
-  after(() => cleanModels().then(() => db.connection.close()));
-
-  afterEach(() => cleanModels());
-
-  it('should start with no users', () => User.find().should.eventually.have.length(0));
+  it('should start with no users', () => User.find({})
+    .should.eventually.have.length(0));
 
   describe('#create', () => {
     describe('when given a valid record', () => {

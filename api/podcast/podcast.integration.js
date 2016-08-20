@@ -1,14 +1,10 @@
 const request = require('supertest-as-promised');
 
-const { cleanModels, entitiesToIds } = require('../../utils/testing');
+const { entitiesToIds } = require('../../utils/testing');
 const Podcast = require('./podcast.model');
 const Station = require('../station/station.model');
-const db = require('../../db');
 
 describe('Podcast API', () => {
-  before(() => db.connect().then(cleanModels));
-  after(() => cleanModels().then(() => db.connection.close()));
-
   let server;
   let agent;
   let station1;
@@ -45,7 +41,7 @@ describe('Podcast API', () => {
       server = app.listen(app.get('port'), app.get('ip'));
       agent = request(server);
     }));
-  afterEach(() => cleanModels().then(() => server.close()));
+  afterEach(() => server.close());
 
   describe('GET /', () => {
     it('should respond with an array of all stations', () => agent

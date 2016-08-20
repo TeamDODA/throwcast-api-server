@@ -1,16 +1,12 @@
 const request = require('supertest-as-promised');
 
-const { cleanModels, entitiesToIds } = require('../../../utils/testing');
+const { entitiesToIds } = require('../../../utils/testing');
 const User = require('../user.model');
 const Station = require('../../station/station.model');
-const db = require('../../../db');
 
 const provider = 'local';
 
 describe('User#subscription API', () => {
-  before(() => db.connect().then(cleanModels));
-  after(() => cleanModels().then(() => db.connection.close()));
-
   let server;
   let agent;
   let station1;
@@ -57,7 +53,7 @@ describe('User#subscription API', () => {
       .post('/auth/local')
       .send({ username: 'username2', password: 'password2' })
       .then(res => (token2 = res.body.token))));
-  afterEach(() => cleanModels().then(() => server.close()));
+  afterEach(() => server.close());
 
   describe('/api/users/subscriptions', () => {
     describe('PUT', () => {

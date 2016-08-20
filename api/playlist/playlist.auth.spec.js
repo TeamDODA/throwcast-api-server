@@ -1,16 +1,13 @@
 const proxyquire = require('proxyquire');
 const { mockReq, mockRes } = require('sinon-express-mock');
-const { cleanModels } = require('../../utils/testing');
-const db = require('../../db');
+
+require('../../utils/testing');
 const Playlist = require('../playlist/playlist.model');
 const Podcast = require('../podcast/podcast.model');
 const Station = require('../station/station.model');
 const User = require('../user/user.model');
 
 describe('Playlist Auth', () => {
-  before(() => db.connect().then(cleanModels));
-  after(() => db.connection.close());
-
   let controller;
   let errorSpy;
   let handleError;
@@ -47,7 +44,6 @@ describe('Playlist Auth', () => {
       handleError = sinon.stub().returns(errorSpy);
       controller = proxyquire('./playlist.auth', { '../../utils': { handleError } });
     }));
-  afterEach(() => cleanModels());
 
   describe('#populateReqPlaylist', () => {
     let res;

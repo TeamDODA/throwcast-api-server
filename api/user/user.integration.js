@@ -1,8 +1,7 @@
 const request = require('supertest-as-promised');
 
-const { cleanModels } = require('../../utils/testing');
+require('../../utils/testing');
 const User = require('./user.model');
-const db = require('../../db');
 
 const userCredentials = [{
   username: 'username1',
@@ -13,9 +12,6 @@ const userCredentials = [{
 }];
 
 describe('User API', () => {
-  before(() => db.connect().then(cleanModels));
-  after(() => cleanModels().then(() => db.connection.close()));
-
   let server;
   let agent;
   beforeEach(done => {
@@ -24,7 +20,7 @@ describe('User API', () => {
     agent = request(server);
     done();
   });
-  afterEach(() => cleanModels().then(() => server.close()));
+  afterEach(() => server.close());
 
   describe('/api/users', () => {
     describe('POST', () => {

@@ -1,13 +1,9 @@
 const request = require('supertest-as-promised');
 
-const { cleanModels, entitiesToIds } = require('../../utils/testing');
+const { entitiesToIds } = require('../../utils/testing');
 const Station = require('./station.model');
-const db = require('../../db');
 
 describe('Station API', () => {
-  before(() => db.connect().then(cleanModels));
-  after(() => cleanModels().then(() => db.connection.close()));
-
   let server;
   let agent;
   beforeEach(() => Station
