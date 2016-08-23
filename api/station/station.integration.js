@@ -1,37 +1,34 @@
 const request = require('supertest-as-promised');
 
-const { entitiesToIds } = require('../../utils/testing');
-const Station = require('./station.model');
+const tu = require('../../utils/testing');
 
 describe('Station API', () => {
-  let server;
   let agent;
-  beforeEach(() => Station
-    .create([{
-      title: 'station1',
-      link: 'http://station1.com',
-      feed: 'http://station1.com/feed',
-      description: { long: 'fake station1' },
-    }, {
-      title: 'station2',
-      link: 'http://station2.com',
-      feed: 'http://station2.com/feed',
-      description: { long: 'fake station2' },
-    }])
+  let server;
+  let tokens;
+  let users;
+  beforeEach(() => tu.createStations(2)
+    .then(() => tu.createUsers(1))
+    .then(created => (users = created))
     .then(() => {
-      const app = require('../../server', { bustCache: true });
+      delete require.cache[require.resolve('../../server')];
+      const app = require('../../server');
+
       server = app.listen(app.get('port'), app.get('ip'));
-      agent = request(server);
-    }));
-  afterEach(done => server.close(done));
+      return (agent = request(app));
+    })
+    .then(() => tu.tokensForUsers(users, agent))
+    .then(created => (tokens = created)));
+  afterEach(() => server.close());
 
   describe('GET /', () => {
     it('should return an array of all stations', () => agent
       .get('/api/stations')
+      .set('authorization', `Bearer ${tokens[0]}`)
       .expect(200)
       .expect('Content-Type', /json/)
       .should.eventually.have.property('body')
-      .then(entitiesToIds)
+      .then(tu.entitiesToIds)
       .should.eventually.have.length(2));
   });
 });
