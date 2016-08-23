@@ -7,6 +7,11 @@ const baseSettings = {
   secrets: {
     session: process.env.SESSION_SECRET || 'session-secret',
   },
+  facebook: {
+    clientID: process.env.FACEBOOK_ID || 'facebook-id',
+    clientSecret: process.env.FACEBOOK_SECRET || 'facebook-secret',
+    callbackURL: `${process.env.DOMAIN || ''}/auth/facebook/callback`,
+  },
 };
 
 const environmentSettings = require(`./${baseSettings.env}`);
