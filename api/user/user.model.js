@@ -5,13 +5,19 @@ const Promise = require('bluebird');
 const cipher = Promise.promisify(bcrypt.hash);
 const compare = Promise.promisify(bcrypt.compare);
 
-const providers = ['local'];
+const providers = ['local', 'facebook'];
 const oid = mongoose.Schema.Types.ObjectId;
 
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  password: {
+    type: String,
+    required: function passwordRequired() {
+      return this.provider === 'local';
+    },
+  },
   provider: { type: String, required: true, enum: providers },
+  facebook: {},
   subscriptions: [{ type: oid, required: true, ref: 'Station', unique: true }],
 });
 

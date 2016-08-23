@@ -1,7 +1,6 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 
-const { signToken } = require('../auth.service');
 const User = require('../../api/user/user.model');
 
 passport.use(new LocalStrategy({
@@ -32,10 +31,8 @@ controller.auth = function auth(req, res, next) {
     if (error) {
       return res.status(401).json(error);
     }
-    if (!user) {
-      return res.status(404).json({ message: 'Something went wrong, please try again.' });
-    }
-    return res.json({ token: signToken(user._id) });
+    req.user = user; // eslint-disable-line no-param-reassign
+    return next();
   })(req, res, next);
 };
 

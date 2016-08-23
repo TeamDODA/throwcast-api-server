@@ -20,10 +20,18 @@ const signToken = function signToken(id) {
 
 const isAuthenticated = [accessTokenHeader, validateJwt, populateReqUser];
 
+const sendJWTToken = function sendJWTToken(req, res) {
+  if (!req.user) {
+    return res.status(404).json({ message: 'Something went wrong, please try again.' });
+  }
+  return res.json({ token: signToken(req.user._id) });
+};
+
 module.exports = {
   accessTokenHeader,
-  validateJwt,
-  populateReqUser,
-  signToken,
   isAuthenticated,
+  populateReqUser,
+  sendJWTToken,
+  signToken,
+  validateJwt,
 };
