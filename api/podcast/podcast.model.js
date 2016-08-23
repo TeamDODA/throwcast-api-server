@@ -3,12 +3,15 @@ const mongoose = require('mongoose');
 const oid = mongoose.Schema.Types.ObjectId;
 
 const podcastSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  link: { type: String, required: true, unique: true },
-  description: { type: String, required: true },
-  pubDate: { type: Date },
-  imageUrl: { type: String },
   station: { type: oid, required: true, ref: 'Station', index: true },
+  guid: { type: String, required: true, index: true },
+  title: { type: String, required: true },
+  published: Date,
+  duration: Number,
+  categories: {},
+  description: String,
+  enclosure: {},
+  image: String,
 }, {
   timestamps: true,
 });

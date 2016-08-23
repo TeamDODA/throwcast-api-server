@@ -87,7 +87,7 @@ describe('Playlists API', () => {
             .send({ title: 'test', podcasts: [podcasts[0]._id, podcasts[1]._id] })
             .should.eventually.have.property('body')
             .and.have.property('podcasts')
-            .then(podcasts => podcasts.map(podcast => podcast.should.have.property('title'))));
+            .then(found => found.forEach(podcast => podcast.should.have.property('title'))));
         });
       });
 
@@ -153,8 +153,8 @@ describe('Playlists API', () => {
           .set('authorization', `Bearer ${tokens[0]}`)
           .then(res => res.body[0].podcasts.forEach(item => {
             item.should.have.property('_id');
+            item.should.have.property('guid');
             item.should.have.property('title');
-            item.should.have.property('link');
             item.should.have.property('description');
             item.should.have.property('station');
           })));

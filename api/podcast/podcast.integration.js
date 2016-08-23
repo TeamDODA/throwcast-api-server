@@ -27,10 +27,10 @@ describe('Podcast API', () => {
       .then(tu.entitiesToIds)
       .should.eventually.have.length(2));
 
-    it('should be sorted in descending createdAt order', () => agent
+    it('should be sorted in descending published order', () => agent
       .get('/api/podcasts')
       .should.eventually.have.property('body')
       .then(tu.entitiesToIds)
-      .should.eventually.be.eql([podcasts[0].id, podcasts[1].id]));
+      .should.eventually.be.eql([podcasts[1].id, podcasts[0].id]));
   });
 });

@@ -5,7 +5,7 @@ const controller = {};
 
 controller.list = (req, res) => {
   Podcast.find({})
-    .sort({ link: 1 })
+    .sort({ published: -1 })
     .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };

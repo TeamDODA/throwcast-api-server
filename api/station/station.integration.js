@@ -10,11 +10,13 @@ describe('Station API', () => {
     .create([{
       title: 'station1',
       link: 'http://station1.com',
-      description: 'fake station1',
+      feed: 'http://station1.com/feed',
+      description: { long: 'fake station1' },
     }, {
       title: 'station2',
       link: 'http://station2.com',
-      description: 'fake station2',
+      feed: 'http://station2.com/feed',
+      description: { long: 'fake station2' },
     }])
     .then(() => {
       const app = require('../../server', { bustCache: true });

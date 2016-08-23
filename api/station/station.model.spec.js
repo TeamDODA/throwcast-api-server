@@ -3,8 +3,9 @@ const Station = require('./station.model');
 
 const title = 'fake station';
 const link = 'https://fake.station.com';
-const description = 'Some description goes here.';
-const imageUrl = 'https://some.where.com/image.png';
+const feed = 'https://fake.station.com/feed';
+const description = { long: 'Some description goes here.' };
+const image = 'https://some.where.com/image.png';
 
 describe('Station Model', () => {
   it('should start with no stations', () => Station.find({})
@@ -13,12 +14,12 @@ describe('Station Model', () => {
   describe('#create', () => {
     describe('when given a valid record', () => {
       it('should successfully store the record', () => {
-        const validStation = { title, link, description, imageUrl };
+        const validStation = { title, link, description, image, feed };
         return Station.create(validStation).should.be.fulfilled;
       });
 
       it('should return the saved record with an objectId', () => {
-        const validStation = { title, link, description, imageUrl };
+        const validStation = { title, link, description, image, feed };
         return Station.create(validStation)
           .then(station => station.should.have.property('_id'));
       });

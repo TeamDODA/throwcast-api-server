@@ -14,7 +14,11 @@ const stationRecords = function stationRecords(indices) {
   return indices.map(i => ({
     title: `Station${i}`,
     link: `https://station${i}.com`,
-    description: `Station${i} Description`,
+    feed: `https://station${i}.com/rss/uri`,
+    image: `https://station${i}.com/image/uri`,
+    updated: Date.now(),
+    categories: {},
+    description: { long: `Station${i} Description`, short: `Station${i}` },
   }));
 };
 
@@ -23,11 +27,13 @@ module.exports.createStations = function createStations(n) {
 };
 
 const podcastRecords = function podcastRecords(stations) {
-  return stations.map(station => ({
+  return stations.map((station, i) => ({
     title: `${station.title} Podcast`,
+    guid: `${station} guid 1`,
     link: `${station.link}/podcast`,
     description: `${station.title} Podcast Description`,
     station: station._id,
+    published: new Date(1471910547430 + i),
   }));
 };
 
