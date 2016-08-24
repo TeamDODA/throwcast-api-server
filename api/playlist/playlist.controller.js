@@ -4,9 +4,11 @@ const Playlist = require('./playlist.model');
 
 const controller = {};
 
-controller.lists = function list(req, res) {
+controller.recent = function recent(req, res) {
   Playlist.find({})
     .populate('podcasts')
+    .sort({ updatedAt: -1 })
+    .limit(100)
     .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };

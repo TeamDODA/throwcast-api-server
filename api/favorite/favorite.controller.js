@@ -11,21 +11,6 @@ controller.create = function list(req, res) {
     .catch(u.handleError(res));
 };
 
-controller.favorite = function favorite(from, as) {
-  return function list(req, res) {
-    const pipeline = [];
-    pipeline.push({ $match: { from, user: req.user._id } });
-    pipeline.push({
-      $lookup: { from, localField: 'localField', foreignField: '_id', as },
-    });
-    pipeline.push({ $unwind: `$${as}` });
-    pipeline.push({ $project: { _id: 1, station: 1 } });
-    Favorite.aggregate(pipeline)
-      .then(u.respondWithResult(res))
-      .catch(u.handleError(res));
-  };
-};
-
 controller.remove = function remove(req, res) {
   req.favorite.remove()
     .then(() => res.sendStatus(204))

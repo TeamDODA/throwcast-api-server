@@ -6,7 +6,7 @@ const controller = require('./station.controller');
 const router = express.Router();
 
 router.use(isAuthenticated);
-router.get('/', controller.list);
+router.get('/', controller.recent);
 
 router.get('/popular', controller.topFavorites);
 router.get('/favorites', controller.topFavorites);
