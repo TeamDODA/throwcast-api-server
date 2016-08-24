@@ -1,4 +1,5 @@
 const u = require('../../utils');
+const Favorite = require('../favorite/favorite.model');
 const Playlist = require('./playlist.model');
 
 const controller = {};
@@ -42,5 +43,22 @@ controller.update = function update(req, res) {
     .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };
+
+const favoritePlaylistPipeline = [
+  { $match: { from: 'playlists' } },
+  { $group: { _id: '$localField', count: { $sum: 1 } } },
+  { $sort: { count: -1, _id: 1 } },
+  { $limit: 50 },
+  { $lookup: { from: 'playlists', localField: '_id', foreignField: '_id', as: 'playlist' } },
+  { $unwind: '$playlist' },
+  { $project: { _id: 0, count: 1, podcast: 1 } },
+];
+
+controller.topFavorites = function popular(req, res) {
+  Favorite.aggregate(favoritePlaylistPipeline)
+    .then(results => res.json(results))
+    .catch(u.handleError(res));
+};
+
 
 module.exports = controller;

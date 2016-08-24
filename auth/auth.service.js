@@ -15,7 +15,7 @@ const accessTokenHeader = function accessTokenHeader(req, res, next) {
 const validateJwt = expressJwt({ secret: config.secrets.session });
 
 const signToken = function signToken(id) {
-  return jwt.sign({ _id: id }, config.secrets.session, { expiresIn: 3600 });
+  return jwt.sign({ _id: id }, config.secrets.session, { expiresIn: 36000 });
 };
 
 const isAuthenticated = [accessTokenHeader, validateJwt, populateReqUser];
