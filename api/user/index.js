@@ -2,6 +2,7 @@ const express = require('express');
 
 const { isAuthenticated } = require('../../auth/auth.service');
 const controller = require('./user.controller');
+const favoritesRouter = require('./favorite');
 const subscriptionRouter = require('./subscription');
 
 const users = express.Router();
@@ -21,6 +22,7 @@ users.post('/', controller.create);
  */
 users.get('/me', isAuthenticated, controller.me);
 
+users.use('/favorites', favoritesRouter);
 users.use('/subscriptions', subscriptionRouter);
 
 module.exports = users;

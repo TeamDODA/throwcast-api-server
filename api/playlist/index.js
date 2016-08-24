@@ -3,14 +3,16 @@ const controller = require('./playlist.controller');
 const { isAuthenticated } = require('../../auth/auth.service');
 const { populateReqPlaylist, isPlaylistOwner } = require('./playlist.auth');
 
-const playlists = express.Router();
+const playlist = express.Router();
 
-playlists.use(isAuthenticated);
-playlists.get('/', controller.lists);
-playlists.post('/', controller.create);
+playlist.use(isAuthenticated);
+playlist.get('/', controller.lists);
+playlist.post('/', controller.create);
 
-playlists.delete('/:playlistId', isPlaylistOwner, controller.remove);
-playlists.get('/:playlistId', populateReqPlaylist, controller.details);
-playlists.put('/:playlistId', isPlaylistOwner, controller.update);
+playlist.delete('/:playlistId', isPlaylistOwner, controller.remove);
+playlist.get('/:playlistId', populateReqPlaylist, controller.details);
+playlist.put('/:playlistId', isPlaylistOwner, controller.update);
 
-module.exports = playlists;
+playlist.get('/favorites', controller.topFavorites);
+
+module.exports = playlist;

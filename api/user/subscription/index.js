@@ -3,7 +3,7 @@ const express = require('express');
 const { isAuthenticated } = require('../../../auth/auth.service');
 const controller = require('./subscription.controller');
 
-const subscriptions = express.Router();
+const subscription = express.Router();
 
 /**
  * /api/users/subscriptions
@@ -11,6 +11,6 @@ const subscriptions = express.Router();
  * PUT: update a user's subscriptions
  * @requires isAuthenticated
  */
-subscriptions.put('/', isAuthenticated, controller.update);
+subscription.put('/', isAuthenticated, controller.update);
 
-module.exports = subscriptions;
+module.exports = subscription;
