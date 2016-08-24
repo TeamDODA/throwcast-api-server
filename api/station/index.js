@@ -3,14 +3,15 @@ const express = require('express');
 const { isAuthenticated } = require('../../auth/auth.service');
 const controller = require('./station.controller');
 
-const router = express.Router();
+const station = express.Router();
 
-router.use(isAuthenticated);
-router.get('/', controller.recent);
+station.use(isAuthenticated);
+station.get('/', controller.recent);
 
-router.get('/popular', controller.topFavorites);
-router.get('/favorites', controller.topFavorites);
+station.post('/search', controller.search);
+station.get('/popular', controller.topFavorites);
+station.get('/favorites', controller.topFavorites);
 
-router.get('/:stationId/podcasts/', controller.listPodcasts);
+station.get('/:stationId/podcasts/', controller.listPodcasts);
 
-module.exports = router;
+module.exports = station;

@@ -1,3 +1,5 @@
+const Promise = require('bluebird');
+
 const u = require('../../utils');
 const Favorite = require('../favorite/favorite.model');
 const Playlist = require('./playlist.model');
@@ -42,6 +44,29 @@ controller.update = function update(req, res) {
   Playlist
     .findByIdAndUpdate(req.playlist.id, { $set: sanitized }, opts)
     .populate('podcasts')
+    .then(u.respondWithResult(res))
+    .catch(u.handleError(res));
+};
+
+const searchOpts = {
+  hydrate: true,
+  hydrateWithESResults: true,
+};
+
+const searchPlaylists = function searchPlaylists(queryObj) {
+  return new Promise((resolve, reject) => {
+    Playlist.search(queryObj, searchOpts, (err, results) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(results);
+    });
+  });
+};
+
+controller.search = function search(req, res) {
+  const { query } = req.body;
+  searchPlaylists({ simple_query_string: { query } })
     .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };

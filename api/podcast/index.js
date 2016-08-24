@@ -3,11 +3,12 @@ const express = require('express');
 const { isAuthenticated } = require('../../auth/auth.service');
 const controller = require('./podcast.controller');
 
-const router = express.Router();
+const podcast = express.Router();
 
-router.use(isAuthenticated);
-router.get('/', controller.recent);
+podcast.use(isAuthenticated);
+podcast.get('/', controller.recent);
 
-router.get('/favorites', controller.topFavorites);
+podcast.post('/search', controller.search);
+podcast.get('/favorites', controller.topFavorites);
 
-module.exports = router;
+module.exports = podcast;

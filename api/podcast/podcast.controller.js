@@ -1,3 +1,5 @@
+const Promise = require('bluebird');
+
 const u = require('../../utils');
 const Favorite = require('../favorite/favorite.model');
 const Podcast = require('./podcast.model');
@@ -8,6 +10,29 @@ controller.recent = function recent(req, res) {
   Podcast.find({})
     .sort({ published: -1 })
     .limit(100)
+    .then(u.respondWithResult(res))
+    .catch(u.handleError(res));
+};
+
+const searchOpts = {
+  hydrate: true,
+  hydrateWithESResults: true,
+};
+
+const searchPodcasts = function searchPodcasts(queryObj) {
+  return new Promise((resolve, reject) => {
+    Podcast.search(queryObj, searchOpts, (err, results) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(results);
+    });
+  });
+};
+
+controller.search = function search(req, res) {
+  const { query } = req.body;
+  searchPodcasts({ simple_query_string: { query } })
     .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };

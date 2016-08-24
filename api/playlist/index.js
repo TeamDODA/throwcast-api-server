@@ -13,6 +13,7 @@ playlist.delete('/:playlistId', isPlaylistOwner, controller.remove);
 playlist.get('/:playlistId', populateReqPlaylist, controller.details);
 playlist.put('/:playlistId', isPlaylistOwner, controller.update);
 
+playlist.post('/search', controller.search);
 playlist.get('/favorites', controller.topFavorites);
 
 module.exports = playlist;

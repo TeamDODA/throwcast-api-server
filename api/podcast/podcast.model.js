@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
+const mongoosastic = require('mongoosastic');
 
 const oid = mongoose.Schema.Types.ObjectId;
 
 const podcastSchema = new mongoose.Schema({
   guid: { type: String, required: true },
-  title: { type: String, required: true },
+  title: { type: String, required: true, es_indexed: true },
   published: Date,
   duration: Number,
   categories: {},
@@ -17,6 +18,7 @@ const podcastSchema = new mongoose.Schema({
 });
 
 podcastSchema.index({ station: 1, guid: 1 }, { unique: true });
+podcastSchema.plugin(mongoosastic);
 
 const Podcast = mongoose.model('Podcast', podcastSchema);
 
