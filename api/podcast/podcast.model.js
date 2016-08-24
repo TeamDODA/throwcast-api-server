@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const mongoosastic = require('mongoosastic');
 
+const config = require('../../config/environment');
+
 const oid = mongoose.Schema.Types.ObjectId;
 
 const podcastSchema = new mongoose.Schema({
@@ -18,7 +20,9 @@ const podcastSchema = new mongoose.Schema({
 });
 
 podcastSchema.index({ station: 1, guid: 1 }, { unique: true });
-podcastSchema.plugin(mongoosastic);
+podcastSchema.plugin(mongoosastic, {
+  hosts: config.elastic.hosts,
+});
 
 const Podcast = mongoose.model('Podcast', podcastSchema);
 

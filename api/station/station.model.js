@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const mongoosastic = require('mongoosastic');
 
+const config = require('../../config/environment');
+
 const stationSchema = new mongoose.Schema({
   title: { type: String, required: true, unique: true, es_indexed: true },
   link: { type: String, required: true },
@@ -13,7 +15,9 @@ const stationSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-stationSchema.plugin(mongoosastic);
+stationSchema.plugin(mongoosastic, {
+  hosts: config.elastic.hosts,
+});
 
 const Station = mongoose.model('Station', stationSchema);
 
