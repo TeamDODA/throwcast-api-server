@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosastic = require('mongoosastic');
 
 const oid = mongoose.Schema.Types.ObjectId;
 
@@ -9,6 +10,8 @@ const playlistSchema = new mongoose.Schema({
 }, {
   timestamps: true,
 });
+
+playlistSchema.plugin(mongoosastic);
 
 const Playlist = mongoose.model('Playlist', playlistSchema);
 

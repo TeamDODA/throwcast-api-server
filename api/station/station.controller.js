@@ -1,3 +1,5 @@
+const Promise = require('bluebird');
+
 const u = require('../../utils');
 const Station = require('./station.model');
 const Podcast = require('../podcast/podcast.model');
@@ -26,6 +28,29 @@ controller.topSubscribed = function popular(req, res) {
   pipeline.push({ $project: { _id: 0, station: 1, count: 1 } });
   User.aggregate(pipeline)
     .then(results => res.json(results))
+    .catch(u.handleError(res));
+};
+
+const searchOpts = {
+  hydrate: true,
+  hydrateWithESResults: true,
+};
+
+const searchStations = function searchStations(queryObj) {
+  return new Promise((resolve, reject) => {
+    Station.search(queryObj, searchOpts, (err, results) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(results);
+    });
+  });
+};
+
+controller.search = function search(req, res) {
+  const { query } = req.body;
+  searchStations({ simple_query_string: { query } })
+    .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };
 
