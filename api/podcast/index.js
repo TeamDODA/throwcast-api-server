@@ -6,7 +6,7 @@ const controller = require('./podcast.controller');
 const router = express.Router();
 
 router.use(isAuthenticated);
-router.get('/', controller.list);
+router.get('/', controller.recent);
 
 router.get('/favorites', controller.topFavorites);
 

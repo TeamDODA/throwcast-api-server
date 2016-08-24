@@ -6,7 +6,6 @@ const { isFavoriteOwner } = require('./favorite.auth');
 const favorite = express.Router();
 
 favorite.use(isAuthenticated);
-
 favorite.post('/', controller.create);
 favorite.delete('/:favoriteId', isFavoriteOwner, controller.remove);
 

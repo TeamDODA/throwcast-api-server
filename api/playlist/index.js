@@ -6,7 +6,7 @@ const { populateReqPlaylist, isPlaylistOwner } = require('./playlist.auth');
 const playlist = express.Router();
 
 playlist.use(isAuthenticated);
-playlist.get('/', controller.lists);
+playlist.get('/', controller.recent);
 playlist.post('/', controller.create);
 
 playlist.delete('/:playlistId', isPlaylistOwner, controller.remove);

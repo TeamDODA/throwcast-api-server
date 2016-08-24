@@ -6,8 +6,10 @@ const User = require('../user/user.model');
 
 const controller = {};
 
-controller.list = function list(req, res) {
-  Station.find({}).exec()
+controller.recent = function recent(req, res) {
+  Station.find({})
+    .sort({ updated: -1 })
+    .limit(100)
     .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };

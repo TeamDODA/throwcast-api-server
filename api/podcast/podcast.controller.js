@@ -4,7 +4,7 @@ const Podcast = require('./podcast.model');
 
 const controller = {};
 
-controller.list = (req, res) => {
+controller.recent = function recent(req, res) {
   Podcast.find({})
     .sort({ published: -1 })
     .limit(100)
