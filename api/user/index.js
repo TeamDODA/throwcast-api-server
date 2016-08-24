@@ -2,7 +2,8 @@ const express = require('express');
 
 const { isAuthenticated } = require('../../auth/auth.service');
 const controller = require('./user.controller');
-const favoritesRouter = require('./favorite');
+const favoriteRouter = require('./favorite');
+const playlistRouter = require('./playlist');
 const subscriptionRouter = require('./subscription');
 
 const users = express.Router();
@@ -22,7 +23,22 @@ users.post('/', controller.create);
  */
 users.get('/me', isAuthenticated, controller.me);
 
-users.use('/favorites', favoritesRouter);
+/**
+ * /api/users/favorites
+ *
+ * GET: Get all favorites for authenticated user
+ * @requires isAuthenticated
+ */
+users.use('/favorites', favoriteRouter);
+
+/**
+ * /api/users/playlists
+ *
+ * GET: Get all playlists for authenticated user
+ * @requires isAuthenticated
+ */
+users.use('/playlists', playlistRouter);
+
 users.use('/subscriptions', subscriptionRouter);
 
 module.exports = users;
