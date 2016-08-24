@@ -12,6 +12,7 @@ const baseSettings = {
     clientSecret: process.env.FACEBOOK_SECRET || 'facebook-secret',
     callbackURL: `${process.env.DOMAIN || ''}/auth/facebook/callback`,
   },
+  elastic: { hosts: ['localhost:9200'] },
 };
 
 const environmentSettings = require(`./${baseSettings.env}`);
