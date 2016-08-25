@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const _ = require('lodash');
 const u = require('../../../utils');
 const Favorite = require('../../favorite/favorite.model');
@@ -35,9 +36,9 @@ controller.favorites = function favorites(req, res) {
 };
 
 controller.remove = function create(req, res) {
-  const { from, localField } = req.params;
+  const { from, id } = req.params;
   const user = req.user._id;
-  Favorite.findOne({ from, localField, user })
+  Favorite.findOne({ from, localField: new mongoose.Types.ObjectId(id), user })
     .then(doc => doc.remove())
     .then(() => res.sendStatus(204))
     .catch(u.handleError(res));
