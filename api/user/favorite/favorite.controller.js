@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const u = require('../../../utils');
 const Favorite = require('../../favorite/favorite.model');
 
@@ -20,7 +21,7 @@ const userFavoritesPipeline = [
 const reshapeAggregation = function reshapeAggregation(result) {
   return result.reduce((p, favorite) => {
     const key = favorite._id;
-    p[key] = favorite[key]; // eslint-disable-line no-param-reassign
+    p[key] = _.flatten(favorite[key]); // eslint-disable-line no-param-reassign
     return p;
   }, {});
 };
