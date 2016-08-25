@@ -14,6 +14,13 @@ controller.recent = function recent(req, res) {
     .catch(u.handleError(res));
 };
 
+controller.detail = function recent(req, res) {
+  Podcast.findById(req.params.podcastId)
+    .then(u.handleEntityNotFound(res))
+    .then(u.respondWithResult(res))
+    .catch(u.handleError(res));
+};
+
 const searchOpts = {
   hydrate: true,
   hydrateWithESResults: true,
