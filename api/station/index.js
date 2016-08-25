@@ -12,6 +12,6 @@ station.post('/search', controller.search);
 station.get('/popular', controller.topFavorites);
 station.get('/favorites', controller.topFavorites);
 
-station.get('/:stationId/podcasts/', controller.listPodcasts);
+station.get('/:stationId', controller.details);
 
 module.exports = station;

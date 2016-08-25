@@ -70,8 +70,11 @@ controller.topFavorites = function popular(req, res) {
     .catch(u.handleError(res));
 };
 
-controller.listPodcasts = function listPodcasts(req, res) {
-  Podcast.find({ station: req.params.stationId }).exec()
+controller.details = function details(req, res) {
+  Station.findById(req.params.stationId)
+    .lean()
+    .then(station => Podcast.find({ station: station._id })
+      .then(podcasts => Object.assign(station, { podcasts })))
     .then(u.respondWithResult(res))
     .catch(u.handleError(res));
 };
