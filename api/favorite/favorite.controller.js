@@ -8,7 +8,7 @@ const controller = {};
 
 const modelMap = {
   playlists: Playlist,
-  podcast: Podcast,
+  podcasts: Podcast,
   stations: Station,
 };
 
