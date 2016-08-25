@@ -26,7 +26,7 @@ const reshapeAggregation = function reshapeAggregation(result) {
   }, {});
 };
 
-controller.favorites = function create(req, res) {
+controller.favorites = function favorites(req, res) {
   const userPipeline = [{ $match: { user: req.user._id } }].concat(userFavoritesPipeline);
   Favorite.aggregate(userPipeline)
     .then(reshapeAggregation)
