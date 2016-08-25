@@ -7,6 +7,6 @@ const favorite = express.Router();
 
 favorite.use(isAuthenticated);
 favorite.get('/', controller.favorites);
-favorite.delete('/:from/:localField', controller.remove);
+favorite.delete('/:from(playlists|podcasts|stations)/:id', controller.remove);
 
 module.exports = favorite;
