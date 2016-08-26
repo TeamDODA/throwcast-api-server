@@ -27,6 +27,7 @@ controller.create = function create(req, res) {
 
 controller.remove = function remove(req, res) {
   req.playlist.remove()
+    .then(() => Favorite.remove({ localField: req.playlist._id }))
     .then(() => res.sendStatus(204))
     .catch(u.handleError(res));
 };

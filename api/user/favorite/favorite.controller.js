@@ -5,30 +5,22 @@ const Favorite = require('../../favorite/favorite.model');
 
 const controller = {};
 
-const userFavoritesPipeline = [
+const lookupPipeline = [
   { $lookup: { from: 'playlists', localField: 'localField', foreignField: '_id', as: 'playlist' } },
   { $lookup: { from: 'podcasts', localField: 'localField', foreignField: '_id', as: 'podcast' } },
   { $lookup: { from: 'stations', localField: 'localField', foreignField: '_id', as: 'station' } },
-  {
-    $group: {
-      _id: '$from',
-      playlists: { $push: '$$ROOT.playlists' },
-      podcasts: { $push: '$$ROOT.podcast' },
-      stations: { $push: '$$ROOT.station' },
-    },
-  },
 ];
 
 const reshapeAggregation = function reshapeAggregation(result) {
-  return result.reduce((p, favorite) => {
-    const key = favorite._id;
-    p[key] = _.flatten(favorite[key]); // eslint-disable-line no-param-reassign
-    return p;
-  }, {});
+  return _(result)
+    .map(obj => ({ type: obj.from, value: obj[obj.from.slice(0, -1)][0] }))
+    .groupBy('type')
+    .mapValues(values => _.map(values, 'value'))
+    .value();
 };
 
 controller.favorites = function favorites(req, res) {
-  const userPipeline = [{ $match: { user: req.user._id } }].concat(userFavoritesPipeline);
+  const userPipeline = [{ $match: { user: req.user._id } }].concat(lookupPipeline);
   Favorite.aggregate(userPipeline)
     .then(reshapeAggregation)
     .then(u.respondWithResult(res))
