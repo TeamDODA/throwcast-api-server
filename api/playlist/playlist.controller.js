@@ -50,6 +50,7 @@ controller.update = function update(req, res) {
 };
 
 const searchOpts = {
+  size: 50,
   hydrate: true,
   hydrateWithESResults: true,
 };
