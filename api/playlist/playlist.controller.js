@@ -80,7 +80,7 @@ const favoritePlaylistPipeline = [
   { $limit: 50 },
   { $lookup: { from: 'playlists', localField: '_id', foreignField: '_id', as: 'playlist' } },
   { $unwind: '$playlist' },
-  { $project: { _id: 0, count: 1, podcast: 1 } },
+  { $project: { _id: 0, count: 1, playlist: 1 } },
 ];
 
 controller.topFavorites = function popular(req, res) {
@@ -88,6 +88,5 @@ controller.topFavorites = function popular(req, res) {
     .then(results => res.json(results))
     .catch(u.handleError(res));
 };
-
 
 module.exports = controller;
