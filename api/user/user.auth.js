@@ -4,7 +4,7 @@ const User = require('./user.model');
 const auth = {};
 
 auth.populateReqUser = function populateReqUser(req, res, next) {
-  User.findById(req.user._id)
+  User.findById(req.user._id, { password: false })
     .then(user => {
       if (!user) {
         return res.status(401).end();

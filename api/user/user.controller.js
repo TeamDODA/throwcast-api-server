@@ -14,10 +14,7 @@ controller.create = function create(req, res) {
 };
 
 controller.me = function me(req, res) {
-  const opts = [{ path: 'subscriptions', model: 'Station' }];
-  return User.populate(req.user, opts)
-    .then(u.respondWithResult(res))
-    .catch(u.handleError(res));
+  return res.json(req.user);
 };
 
 module.exports = controller;
