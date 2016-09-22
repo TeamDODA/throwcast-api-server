@@ -25,10 +25,6 @@ describe('User Model', () => {
         it('should have an objectId property', () => createdUser
           .should.have.property('_id'));
 
-        it('should have a subscriptions property that is an empty array', () => createdUser
-          .should.have.property('subscriptions')
-          .and.have.length(0));
-
         it('should have a username property', () => createdUser
           .should.have.property('username')
           .and.equal(validUser.username));

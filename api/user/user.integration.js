@@ -145,7 +145,7 @@ describe('User API', () => {
           .then(res => {
             res.body._id.should.equal(user.id);
             res.body.username.should.equal(user.username);
-            res.body.should.have.property('subscriptions');
+            res.body.should.not.have.property('password');
           }));
       });
     });

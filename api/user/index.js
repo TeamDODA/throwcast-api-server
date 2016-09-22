@@ -4,7 +4,6 @@ const { isAuthenticated } = require('../../auth/auth.service');
 const controller = require('./user.controller');
 const favoriteRouter = require('./favorite');
 const playlistRouter = require('./playlist');
-const subscriptionRouter = require('./subscription');
 
 const users = express.Router();
 
@@ -38,7 +37,5 @@ users.use('/favorites', favoriteRouter);
  * @requires isAuthenticated
  */
 users.use('/playlists', playlistRouter);
-
-users.use('/subscriptions', subscriptionRouter);
 
 module.exports = users;
